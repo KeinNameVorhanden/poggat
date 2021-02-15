@@ -1,0 +1,7 @@
+config.json
+config.json.bak
+app.js.old
+index.js
+test.js
+*.exe
+*.log
