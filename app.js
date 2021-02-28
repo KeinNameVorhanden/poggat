@@ -1,4 +1,3 @@
-require('dotenv').config();
 const puppeteer = require('puppeteer-core');
 const dayjs = require('dayjs');
 const cheerio = require('cheerio');
@@ -8,45 +7,45 @@ let colors = require('colors');
 var readline = require('readline');
 
 const livecheck = require("./helper/livecheck");
-const inquirer = require('./helper/input');
+const userinput = require('./helper/input');
 
 var run = true;
 var firstRun = true;
 var streamers = null;
-const appversion = "0.2.6.0";
+const appversion = "0.2.6";
 
-const configPath = './config.json';
+const config = './config.json';
 const baseUrl = 'https://www.twitch.tv/';
-const userAgent = (process.env.userAgent || 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/78.0.3904.108 Safari/537.36');
-let streamersUrl = (process.env.streamersUrl || `https://www.twitch.tv/directory/game/`);
+const userAgent = 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/78.0.3904.108 Safari/537.36';
+let streamersUrl = `https://www.twitch.tv/directory/game/`;
 
-const scrollDelay = (Number(process.env.scrollDelay) || 2000);
-const scrollTimes = (Number(process.env.scrollTimes) || 2);
+const scrollDelay = 2000;
+const scrollTimes = 2;
 
-const minWatching = (Number(process.env.minWatching) || 15); // minutes
-const maxWatching = (Number(process.env.maxWatching) || 20); // minutes
+const minWatching = 15; // minutes
+const maxWatching = 20; // minutes
 
-const streamerListRefresh = (Number(process.env.streamerListRefresh) || 1);
-const streamerListRefreshUnit = (process.env.streamerListRefreshUnit || 'hour');
+const streamerListRefresh = 1;
+const streamerListRefreshUnit = 'hour';
 
 const hideBrowser = true;
-const proxy = (process.env.proxy || "");
-const proxyAuth = (process.env.proxyAuth || "");
+const proxy = "";
+const proxyAuth = "";
 
 const browserClean = 1;
 const browserCleanUnit = 'hour';
 
-let configFile = fs.existsSync(configPath) ? JSON.parse(fs.readFileSync(configPath, 'utf8')) : null;
+let configData = fs.existsSync(config) ? JSON.parse(fs.readFileSync(config, 'utf8')) : null;
 let tmpConfig = null;
 
-if (configFile != null) {
-  fs.writeFile(configPath + '.bak', JSON.stringify(configFile), function (err) {
+if (configData != null) {
+  fs.writeFile(config + '.bak', JSON.stringify(configData), function (err) {
     if (err) {
       console.log(err);
     }
   });
 }
-const fixedwatch = configFile.watch;
+const fixedwatch = configData.watch;
 
 var browserConfig = {
   headless: hideBrowser,
@@ -74,7 +73,7 @@ const localization_cookie = [{
   "session": false,
   "storeId": "0",
   "id": 1,
-  "value": configFile.country_code
+  "value": configData.country_code
 }];
 
 var auth_cookie =  [{
@@ -88,7 +87,7 @@ var auth_cookie =  [{
   "session": false,
   "storeId": "0",
   "id": 1,
-  "value": configFile.auth_token
+  "value": configData.auth_token
 }];
 
 const cookiePolicyQuery = 'button[data-a-target="consent-banner-accept"]';
@@ -101,20 +100,8 @@ const closeNotification = 'button[aria-label="Close"]';
 const streamSettingsQuery = '[data-a-target="player-settings-button"]';
 const streamQualitySettingQuery = '[data-a-target="player-settings-menu-item-quality"]';
 const streamQualityQuery = 'input[data-a-target="tw-radio"]';
-//const givenDropTextWithLink = 'a[data-test-selector="DropsCampaignInProgressDescription-single-channel-hint-text"]';
-const dropButton = 'button[data-test-selector="DropsCampaignInProgressRewardPresentation-claim-button"]'
-
-const CHANNEL_STATUS = ".tw-channel-status-text-indicator";
-const DROP_STATUS = '[data-a-target="Drops Enabled"]';
-const DROP_STATUS2 = '.drops-campaign-details__drops-success';
-const DROP_INVENTORY_NAME = '[data-test-selector="drops-list__game-name"]';
-const DROP_INVENTORY_LIST = 'div.tw-flex-wrap.tw-tower.tw-tower--180.tw-tower--gutter-sm';
-const NO_INVENTORY_DROPS = '[data-test-selector="drops-list__no-drops-default"]';
-const DROP_PLACEHOLDER = '.tw-tower__placeholder';
-const DROP_ITEM = '.tw-flex';
+const dropButton = 'button[data-test-selector="DropsCampaignInProgressRewardPresentation-claim-button"]';
 const CATEGORY_NOT_FOUND = '[data-a-target="core-error-message"]';
-
-const DEBUG_FLAG = false;
 
 function idle(ms) {
   return new Promise(resolve => setTimeout(resolve, ms));
@@ -123,15 +110,15 @@ function idle(ms) {
 async function livechecker(who) {
   try {
       console.log(`[${'!'.brightYellow}] Checking if ${who.brightMagenta} is online!`);
-      let r1 = await livecheck.fPCS(who);
-      if (r1.online && capitalize(r1.game) == capitalize(configFile.game)) {
-        console.log(`[${'i'.brightCyan}] ${who.brightMagenta} is ${'online'.brightGreen} and plays ${r1.game.brightGreen}!`);
-      } else if (r1.online && capitalize(r1.game) != capitalize(configFile.game)) {
-        console.log(`[${'i'.brightCyan}] ${who.brightMagenta} is ${'online'.brightGreen} and plays ${r1.game.brightYellow}!`);
+      let intruder = await livecheck.fPCS(who);
+      if (intruder.online && capitalize(intruder.game) == capitalize(configData.game)) {
+        console.log(`[${'i'.brightCyan}] ${who.brightMagenta} is ${'online'.brightGreen} and plays ${intruder.game.brightGreen}!`);
+      } else if (intruder.online && capitalize(intruder.game) != capitalize(configData.game)) {
+        console.log(`[${'i'.brightCyan}] ${who.brightMagenta} is ${'online'.brightGreen} and plays ${intruder.game.brightYellow}!`);
       } else {
         console.log(`[${'i'.brightCyan}] ${who.brightMagenta} is ${'offline'.brightRed}!`);
       }
-      return r1
+      return intruder
   } catch(e) {
       throw e;
   }
@@ -141,9 +128,6 @@ async function query(page, query) {
   let bodyHTML = await page.evaluate(() => document.body.innerHTML);
   let $ = cheerio.load(bodyHTML);
   const jquery = $(query);
-
-  if (DEBUG_FLAG && !jquery)
-    throw new Error("Invalid query result");
   return jquery;
 }
 
@@ -166,6 +150,7 @@ async function getUserProperty(page, name) {
   return cookieValue[name];
 }
 
+// real main function
 async function watchStream(browser, page) {
   console.log(`\n[${'●'.brightRed}] ${'MAIN'.brightRed}`);
   var streamerLastRefresh = dayjs().add(streamerListRefresh, streamerListRefreshUnit);
@@ -179,7 +164,7 @@ async function watchStream(browser, page) {
       if (fixedwatch.length != 0) {
         for (var i = 0; i < fixedwatch.length; i++) {
           const status = await livechecker(fixedwatch[i])
-          if (status.online && capitalize(status.game) == capitalize(configFile.game)) {
+          if (status.online && capitalize(status.game) == capitalize(configData.game)) {
             watch = fixedwatch[i];
             break;
           }
@@ -187,7 +172,7 @@ async function watchStream(browser, page) {
         }
       }
       
-      if (!configFile.only_idle_fixed) {
+      if (!configData.only_idle_fixed) {
         if (watch == null || watch == undefined) {
           console.log(`[${'!'.brightYellow}] Getting a random streamer.`)
           if (dayjs(browserLastRefresh).isBefore(dayjs())) {
@@ -290,37 +275,38 @@ async function watchStream(browser, page) {
     }
   }
 }
+
 async function readLoginData() {
   console.log(`\n[${'●'.brightRed}] ${'CONFIG'.brightRed}`);
 
   try {
-    if (fs.existsSync(configPath)) {
+    if (fs.existsSync(config)) {
       await idle(1000);
       console.log(`[${'+'.brightGreen}] Found config file.`);
 
-      configFile = JSON.parse(fs.readFileSync(configPath, 'utf8'));
-      tmpConfig = JSON.parse(fs.readFileSync(configPath, 'utf8'));
+      configData = JSON.parse(fs.readFileSync(config, 'utf8'));
+      tmpConfig = JSON.parse(fs.readFileSync(config, 'utf8'));
 
       if (proxy) browserConfig.args.push('--proxy-server=' + proxy);
       
-      if (configFile.exec != "" && configFile.exec != undefined && configFile.exec.length > 0) {
-        browserConfig.executablePath = configFile.exec;
+      if (configData.exec != "" && configData.exec != undefined && configData.exec.length > 0) {
+        browserConfig.executablePath = configData.exec;
       } else {
-        let getPath = await inquirer.askExecPath();
+        let getPath = await userinput.askExecPath();
         browserConfig.executablePath = getPath;
       }
 
-      if (configFile.game != "" && configFile.game != undefined && configFile.game.length > 0) {
-        streamersUrl = (streamersUrl + configFile.game.toUpperCase());
+      if (configData.game != "" && configData.game != undefined && configData.game.length > 0) {
+        streamersUrl = (streamersUrl + configData.game.toUpperCase());
       } else {
-        let getGame = await inquirer.askGameName();
+        let getGame = await userinput.askGameName();
         streamersUrl = getGame;
       }      
 
-      if (configFile.auth_token != "" && configFile.auth_token != undefined && configFile.auth_token.length >= 28) {
-        auth_cookie[0].value = configFile.auth_token;
+      if (configData.auth_token != "" && configData.auth_token != undefined && configData.auth_token.length >= 28) {
+        auth_cookie[0].value = configData.auth_token;
       } else {
-        let getToken = await inquirer.askAuthToken();
+        let getToken = await userinput.askAuthToken();
         auth_cookie[0].value = getToken;
       }
 
@@ -348,9 +334,9 @@ async function readLoginData() {
     } else {
       console.log(`[${'-'.brightRed}] No config file found!`);
 
-      let input = await inquirer.askLogin();
+      let input = await userinput.askLogin();
 
-      fs.writeFile(configPath, JSON.stringify(input), function (err) {
+      fs.writeFile(config, JSON.stringify(input), function (err) {
         if (err) {
           console.log(err);
         }
@@ -367,6 +353,7 @@ async function readLoginData() {
   }
 }
 
+// spawn browser with predefined configuration
 async function spawnBrowser() {
   console.log(`\n[${'●'.brightRed}] ${'BROWSER'.brightRed}`);
 
@@ -379,8 +366,8 @@ async function spawnBrowser() {
     await page.setCookie(...localization_cookie);
 
     
-    await page.setDefaultNavigationTimeout(process.env.timeout || 0);
-    await page.setDefaultTimeout(process.env.timeout || 0);
+    await page.setDefaultNavigationTimeout(0);
+    await page.setDefaultTimeout(0);
 
     if (proxyAuth) {
       await page.setExtraHTTPHeaders({
@@ -398,6 +385,7 @@ async function spawnBrowser() {
   };
 }
 
+// collect all streamers from current page
 async function getAllStreamer(page) {
   try {
     await page.goto(streamersUrl, {
@@ -422,11 +410,11 @@ async function getAllStreamer(page) {
     console.log(`[${'+'.brightGreen}] Got streamers and filtered them!`);
     return;
   } catch (e) {
-    exit("get streamers/ filter streamer.", e);
+    exit("get streamers/filter streamer.", e);
   }
 }
 
-let retries = 0;
+// if cookie 'twilight-user' exists, print username, if not set cookie again
 async function checkLogin(page) {
   let cookieSetByServer = await page.cookies();
   for (var i = 0; i < cookieSetByServer.length; i++) {
@@ -435,17 +423,16 @@ async function checkLogin(page) {
       if (firstRun) {
         console.log(`[${'+'.brightGreen}] Successfully logged in as ${name.bold.green}!`);
       }
-      retries = 0;
       return true;
     }
   }
 
-  cookie.value = configFile.auth_token;
-  retries++
+  cookie.value = configData.auth_token;
   await idle(250);
   checkLogin(page);
 }
 
+// scroll current page, for x {times} and for x {scrollDelay} ms
 async function scroll(page, times) {
   for (var i = 0; i < times; i++) {
     try {
@@ -467,6 +454,7 @@ function getRandomInt(min, max) {
   return Math.floor(Math.random() * (max - min + 1)) + min;
 }
 
+// check if element exists and click on it if it does
 async function clickWhenExist(page, selector) {
   let result = await query(page, selector);
 
@@ -495,12 +483,7 @@ async function killBrowser(browser, page) {
   return;
 }
 
-async function shutDown() {
-  console.log("\nExiting...");
-  run = false;
-  process.exit();
-}
-
+// exit function, to give error output to the end-user
 async function exit(msg = "", e = null) {
   run = false;
   if (e && msg.length > 0) {
@@ -513,6 +496,7 @@ async function exit(msg = "", e = null) {
   main();
 }
 
+// initialize main
 async function main() {
   console.clear();
   console.log("IdleTwitch v" + appversion.italic.brightGreen);
@@ -530,10 +514,12 @@ async function main() {
   }
 };
 
+// function that was made quite obsolete
 async function writeCurrentInfo(info) {
   console.log(info)
 }
 
+// once needed
 function arraycontains(needles, haystack){
   if(needles.includes(haystack)) {
     return true;
@@ -543,5 +529,12 @@ function arraycontains(needles, haystack){
 
 main();
 
-process.on("SIGINT", shutDown);
-process.on("SIGTERM", shutDown);
+// shutdown function
+async function shutdown() {
+  console.log("\nExiting...");
+  run = false;
+  process.exit();
+}
+
+process.on("SIGINT", shutdown);
+process.on("SIGTERM", shutdown);

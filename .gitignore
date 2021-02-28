@@ -5,3 +5,4 @@ index.js
 test.js
 *.exe
 *.log
+node_modules

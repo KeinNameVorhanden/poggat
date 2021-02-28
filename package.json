@@ -1,6 +1,6 @@
 {
   "name": "poggat",
-  "version": "0.2.6.0",
+  "version": "0.2.6",
   "description": "A simple idle twitch bot for drops.",
   "main": "app.js",
   "author": "KeinNameVorhanden",
