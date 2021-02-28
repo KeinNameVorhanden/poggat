@@ -1,3 +1,4 @@
+require('dotenv').config();
 const puppeteer = require('puppeteer-core');
 const dayjs = require('dayjs');
 const cheerio = require('cheerio');
@@ -101,6 +102,8 @@ const streamSettingsQuery = '[data-a-target="player-settings-button"]';
 const streamQualitySettingQuery = '[data-a-target="player-settings-menu-item-quality"]';
 const streamQualityQuery = 'input[data-a-target="tw-radio"]';
 const dropButton = 'button[data-test-selector="DropsCampaignInProgressRewardPresentation-claim-button"]';
+const DROP_STATUS = '[data-a-target="Drops Enabled"]';
+const DROP_STATUS2 = '.drops-campaign-details__drops-success';
 const CATEGORY_NOT_FOUND = '[data-a-target="core-error-message"]';
 
 function idle(ms) {
@@ -161,14 +164,16 @@ async function watchStream(browser, page) {
     try {
       
       let watch = null;
-      if (fixedwatch.length != 0) {
-        for (var i = 0; i < fixedwatch.length; i++) {
-          const status = await livechecker(fixedwatch[i])
-          if (status.online && capitalize(status.game) == capitalize(configData.game)) {
-            watch = fixedwatch[i];
-            break;
+      if (!configData.skip_fixed) {
+        if (fixedwatch.length != 0) {
+          for (var i = 0; i < fixedwatch.length; i++) {
+            const status = await livechecker(fixedwatch[i])
+            if (status.online && capitalize(status.game) == capitalize(configData.game)) {
+              watch = fixedwatch[i];
+              break;
+            }
+            watch = null;
           }
-          watch = null;
         }
       }
       
@@ -186,6 +191,16 @@ async function watchStream(browser, page) {
           await getAllStreamer(page);
           watch = streamers[getRandomInt(0, streamers.length - 1)];
           streamerLastRefresh = dayjs().add(streamerListRefresh, streamerListRefreshUnit);
+
+          await page.goto(baseUrl + watch, {
+            "waitUntil": "networkidle2"
+          });
+
+          const dropsEnabled = (await query(page, DROP_STATUS)).length || (await query(page, DROP_STATUS2)).length;
+          if (!dropsEnabled) {
+            console.log(`[${'-'.red}] Streamer didnt have drops!`);
+            continue;
+          }
         }
       }
       var sleep = getRandomInt(minWatching, maxWatching) * 60000;
@@ -311,20 +326,24 @@ async function readLoginData() {
       }
 
       if (fixedwatch) {
-        let watchstring = "";
-        for (var i = 0; i < fixedwatch.length; i++) {
-          watchstring = watchstring + fixedwatch[i];
-          if (i < fixedwatch.length - 1) {
-            watchstring = watchstring + ", ";
+        if (!configData.skip_fixed) {
+          let watchstring = "";
+          for (var i = 0; i < fixedwatch.length; i++) {
+            watchstring = watchstring + fixedwatch[i];
+            if (i < fixedwatch.length - 1) {
+              watchstring = watchstring + ", ";
+            }
           }
-        }
 
-        if (fixedwatch.length == 1) {
-          console.log(`[${'+'.brightGreen}] Found fixed streamer to watch if online.`);
-          console.log(`[${'i'.brightCyan}] ${watchstring}`);
-        } else if (fixedwatch.length > 1) {
-          console.log(`[${'+'.brightGreen}] Found fixed streamers to watch if online.`);
-          console.log(`[${'i'.brightCyan}] ${watchstring}`);
+          if (fixedwatch.length == 1) {
+            console.log(`[${'+'.brightGreen}] Found fixed streamer to watch if online.`);
+            console.log(`[${'i'.brightCyan}] ${watchstring}`);
+          } else if (fixedwatch.length > 1) {
+            console.log(`[${'+'.brightGreen}] Found fixed streamers to watch if online.`);
+            console.log(`[${'i'.brightCyan}] ${watchstring}`);
+          }
+        } else {
+          console.log(`[${'!'.brightRed}] Skipping fixed streamer(s)!`);
         }
       } else {
         console.log(`[${'!'.brightRed}] No fixed streamer(s) found.`);
@@ -427,7 +446,7 @@ async function checkLogin(page) {
     }
   }
 
-  cookie.value = configData.auth_token;
+  auth_cookie.value = configData.auth_token;
   await idle(250);
   checkLogin(page);
 }
@@ -502,6 +521,7 @@ async function main() {
   console.log("IdleTwitch v" + appversion.italic.brightGreen);
 
   try {
+    await readLoginData();
     var {
       browser,
       page
