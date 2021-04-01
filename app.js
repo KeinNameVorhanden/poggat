@@ -3,6 +3,7 @@ const puppeteer = require('puppeteer-core');
 const dayjs = require('dayjs');
 const cheerio = require('cheerio');
 var fs = require('fs');
+var consoletitle = require('console-title');
 const treekill = require('tree-kill');
 let colors = require('colors');
 var readline = require('readline');
@@ -13,7 +14,9 @@ const userinput = require('./helper/input');
 var run = true;
 var firstRun = true;
 var streamers = null;
-const appversion = "0.2.6";
+var collectedDrops = 0;
+var lastDrop = "Never";
+const appversion = "0.2.7.1";
 
 const config = './config.json';
 const baseUrl = 'https://www.twitch.tv/';
@@ -23,15 +26,8 @@ let streamersUrl = `https://www.twitch.tv/directory/game/`;
 const scrollDelay = 2000;
 const scrollTimes = 2;
 
-const minWatching = 15; // minutes
-const maxWatching = 20; // minutes
-
 const streamerListRefresh = 1;
 const streamerListRefreshUnit = 'hour';
-
-const hideBrowser = true;
-const proxy = "";
-const proxyAuth = "";
 
 const browserClean = 1;
 const browserCleanUnit = 'hour';
@@ -46,7 +42,13 @@ if (configData != null) {
     }
   });
 }
-const fixedwatch = configData.watch;
+
+const minWatching = configData.minWatching ? configData.minWatching : 15;
+const maxWatching = configData.maxWatching ? configData.maxWatching : 20;
+const fixedWatch = configData.watch;
+const hideBrowser = configData.hideBrowser ? configData.hideBrowser : false;
+const proxy = "";
+const proxyAuth = "";
 
 var browserConfig = {
   headless: hideBrowser,
@@ -101,10 +103,11 @@ const closeNotification = 'button[aria-label="Close"]';
 const streamSettingsQuery = '[data-a-target="player-settings-button"]';
 const streamQualitySettingQuery = '[data-a-target="player-settings-menu-item-quality"]';
 const streamQualityQuery = 'input[data-a-target="tw-radio"]';
+const categoryNotFound = '[data-a-target="core-error-message"]';
 const dropButton = 'button[data-test-selector="DropsCampaignInProgressRewardPresentation-claim-button"]';
-const DROP_STATUS = '[data-a-target="Drops Enabled"]';
-const DROP_STATUS2 = '.drops-campaign-details__drops-success';
-const CATEGORY_NOT_FOUND = '[data-a-target="core-error-message"]';
+//const dropStatus = '[data-a-target="Drops Enabled"]';
+//const dropStatus2 = '.drops-campaign-details__drops-success';
+//const filterForDrops = '[data-a-target="form-tag-add-filter-suggested"]';
 
 function idle(ms) {
   return new Promise(resolve => setTimeout(resolve, ms));
@@ -113,7 +116,9 @@ function idle(ms) {
 async function livechecker(who) {
   try {
       console.log(`[${'!'.brightYellow}] Checking if ${who.brightMagenta} is online!`);
+
       let intruder = await livecheck.fPCS(who);
+      
       if (intruder.online && capitalize(intruder.game) == capitalize(configData.game)) {
         console.log(`[${'i'.brightCyan}] ${who.brightMagenta} is ${'online'.brightGreen} and plays ${intruder.game.brightGreen}!`);
       } else if (intruder.online && capitalize(intruder.game) != capitalize(configData.game)) {
@@ -131,6 +136,7 @@ async function query(page, query) {
   let bodyHTML = await page.evaluate(() => document.body.innerHTML);
   let $ = cheerio.load(bodyHTML);
   const jquery = $(query);
+  
   return jquery;
 }
 
@@ -162,22 +168,21 @@ async function watchStream(browser, page) {
   await checkLogin(page);
   while (run) {
     try {
+      configData = await JSON.parse(fs.readFileSync(config, 'utf8'));
       
       let watch = null;
-      if (!configData.skip_fixed) {
-        if (fixedwatch.length != 0) {
-          for (var i = 0; i < fixedwatch.length; i++) {
-            const status = await livechecker(fixedwatch[i])
-            if (status.online && capitalize(status.game) == capitalize(configData.game)) {
-              watch = fixedwatch[i];
-              break;
-            }
-            watch = null;
+      if (fixedWatch.length != 0) {
+        for (var i = 0; i < fixedWatch.length; i++) {
+          const status = await livechecker(fixedWatch[i])
+          if (status.online && capitalize(status.game) == capitalize(configData.game)) {
+            watch = fixedWatch[i];
+            break;
           }
+          watch = null;
         }
       }
       
-      if (!configData.only_idle_fixed) {
+      if (!configData.onlyIdleFixed) {
         if (watch == null || watch == undefined) {
           console.log(`[${'!'.brightYellow}] Getting a random streamer.`)
           if (dayjs(browserLastRefresh).isBefore(dayjs())) {
@@ -196,11 +201,11 @@ async function watchStream(browser, page) {
             "waitUntil": "networkidle2"
           });
 
-          const dropsEnabled = (await query(page, DROP_STATUS)).length || (await query(page, DROP_STATUS2)).length;
+          /*const dropsEnabled = (await query(page, dropStatus)).length || (await query(page, dropStatus2)).length;
           if (!dropsEnabled) {
             console.log(`[${'-'.red}] Streamer didnt have drops!`);
             continue;
-          }
+          }*/
         }
       }
       var sleep = getRandomInt(minWatching, maxWatching) * 60000;
@@ -212,20 +217,27 @@ async function watchStream(browser, page) {
       if (!firstRun) {
         await checkLogin(page);
       }
+      
+      consoletitle("NodeJS @ IdleTwitch v" + appversion + " | Drops collected: " + collectedDrops + " | Last Drop: " + lastDrop);
 
-      await idle(1000);
+      await idle(1500);
       let drops = await query(page, dropButton);
       if (drops.length == 1) {
         await clickWhenExist(page, dropButton);
-        console.log(`[${'i'.brightCyan}] Claimed 1 drop item.`)
+        console.log(`[${'i'.brightCyan}] ${'Claimed 1 drop item.'.brightCyan}`)
+        lastDrop = dayjs().format('HH:mm:ss');
       } else if (drops.length >= 2) {
         for (var i = 0; i < drops.length; i++) {
-          await clickWhenExist(page, dropButton[i]);
+          await clickWhenExist(page, dropButton);
+          await idle(2000);
         }
-        console.log(`[${'i'.brightCyan}] Claimed ${drops.length} drop items.`)
+        console.log(`[${'i'.brightCyan}] ${'Claimed ' + drops.length + ' drop items.'.brightCyan}`)
+        lastDrop = dayjs().format('HH:mm:ss');
       } else {
         await idle(1000);
       }
+
+      collectedDrops = collectedDrops + drops.length;
 
       if (watch != null) {
         await page.goto(baseUrl + watch, {
@@ -267,7 +279,6 @@ async function watchStream(browser, page) {
         await page.waitFor(userStatusQuery);
         let status = await query(page, userStatusQuery);
         await clickWhenExist(page, sidebarQuery);
-        let    = dayjs().format('HH:mm:ss');
 
         info = (`[${'i'.brightCyan}] Watching: ` + baseUrl + watch);
         info = info + "\n" + `[${'i'.brightCyan}] Account status: ` + (status[0] ? status[0].children[0].data : "Unknown");
@@ -280,7 +291,6 @@ async function watchStream(browser, page) {
           firstRun = false;
         }
       } else {
-        sleep = sleep * 3;
         console.log(`[${'i'.brightCyan}] Idling for ` + sleep / 60000 + ' minutes => ' + dayjs().add((sleep / 60000), 'minutes').format('HH:mm:ss') + '\n');
       }
       
@@ -312,7 +322,7 @@ async function readLoginData() {
       }
 
       if (configData.game != "" && configData.game != undefined && configData.game.length > 0) {
-        streamersUrl = (streamersUrl + configData.game.toUpperCase());
+        streamersUrl = (streamersUrl + configData.game.toUpperCase() + "?tl=c2542d6d-cd10-4532-919b-3d19f30a768b");
       } else {
         let getGame = await userinput.askGameName();
         streamersUrl = getGame;
@@ -325,26 +335,22 @@ async function readLoginData() {
         auth_cookie[0].value = getToken;
       }
 
-      if (fixedwatch) {
-        if (!configData.skip_fixed) {
+      if (fixedWatch) {
           let watchstring = "";
-          for (var i = 0; i < fixedwatch.length; i++) {
-            watchstring = watchstring + fixedwatch[i];
-            if (i < fixedwatch.length - 1) {
+          for (var i = 0; i < fixedWatch.length; i++) {
+            watchstring = watchstring + fixedWatch[i];
+            if (i < fixedWatch.length - 1) {
               watchstring = watchstring + ", ";
             }
           }
 
-          if (fixedwatch.length == 1) {
+          if (fixedWatch.length == 1) {
             console.log(`[${'+'.brightGreen}] Found fixed streamer to watch if online.`);
             console.log(`[${'i'.brightCyan}] ${watchstring}`);
-          } else if (fixedwatch.length > 1) {
+          } else if (fixedWatch.length > 1) {
             console.log(`[${'+'.brightGreen}] Found fixed streamers to watch if online.`);
             console.log(`[${'i'.brightCyan}] ${watchstring}`);
           }
-        } else {
-          console.log(`[${'!'.brightRed}] Skipping fixed streamer(s)!`);
-        }
       } else {
         console.log(`[${'!'.brightRed}] No fixed streamer(s) found.`);
       }
@@ -411,11 +417,15 @@ async function getAllStreamer(page) {
       "waitUntil": "networkidle0"
     });
     
-    const notFound = await query(page, CATEGORY_NOT_FOUND);
+    const notFound = await query(page, categoryNotFound);
     if (notFound.length || notFound.text() == "Category does not exist") {
       console.log(`[${'-'.brightRed}] Game category not found, did you enter the game as displayed on twitch?`);
       exit();
     }
+
+    /*const filters = await query(page, filterForDrops);
+    clickWhenExist(page, filters[0]);
+    await idle(500);*/
     
     await scroll(page, scrollTimes);
     const jquery = await query(page, channelsQuery);
@@ -519,6 +529,7 @@ async function exit(msg = "", e = null) {
 async function main() {
   console.clear();
   console.log("IdleTwitch v" + appversion.italic.brightGreen);
+  consoletitle("NodeJS @ IdleTwitch v" + appversion);
 
   try {
     await readLoginData();

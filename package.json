@@ -1,6 +1,6 @@
 {
   "name": "poggat",
-  "version": "0.2.6",
+  "version": "0.2.7.1",
   "description": "A simple idle twitch bot for drops.",
   "main": "app.js",
   "author": "KeinNameVorhanden",
@@ -8,21 +8,28 @@
     "cheerio": "^1.0.0-rc.3",
     "cli-spinner": "^0.2.10",
     "colors": "^1.4.0",
+    "console-title": "^1.1.0",
     "dayjs": "^1.8.27",
     "dotenv": "^8.2.0",
     "inquirer": "^7.1.0",
-    "node-telegram-bot-api": "^0.50.0",
-    "puppeteer": "^3.1.0",
+    "puppeteer": "^3.3.0",
     "puppeteer-core": "^3.1.0",
     "tree-kill": "^1.2.2"
+  },
+  "devDependencies": {
+    "nexe": "^3.3.2"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "nexe"
   },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/KeinNameVorhanden/poggat.git"
   },
-  "license": "MIT",
+  "license": "ISC",
   "bugs": {
     "url": "https://github.com/KeinNameVorhanden/poggat/issues"
   },
-  "homepage": "https://github.com/KeinNameVorhandenpoggat#readme"
+  "homepage": "https://github.com/KeinNameVorhanden/poggat#readme"
 }

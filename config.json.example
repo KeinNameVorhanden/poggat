@@ -3,7 +3,9 @@
     "country_code": "DE",
     "exec": "C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe",
     "game": "Rust",
-    "only_idle_fixed": true,
-    "skip_fixed": false,
+    "minWatching":15,
+    "maxWatching":20,
+    "onlyIdleFixed": true,
+    "hideBrowser":false,
     "watch": []
 }
