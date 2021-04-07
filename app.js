@@ -16,7 +16,7 @@ var firstRun = true;
 var streamers = null;
 var collectedDrops = 0;
 var lastDrop = "Never";
-const appversion = "0.2.7.1";
+const appversion = "0.2.7.3";
 
 const config = './config.json';
 const baseUrl = 'https://www.twitch.tv/';
@@ -105,8 +105,8 @@ const streamQualitySettingQuery = '[data-a-target="player-settings-menu-item-qua
 const streamQualityQuery = 'input[data-a-target="tw-radio"]';
 const categoryNotFound = '[data-a-target="core-error-message"]';
 const dropButton = 'button[data-test-selector="DropsCampaignInProgressRewardPresentation-claim-button"]';
-//const dropStatus = '[data-a-target="Drops Enabled"]';
-//const dropStatus2 = '.drops-campaign-details__drops-success';
+const dropStatus = '[data-a-target="Drops Enabled"]';
+const dropStatus2 = '.drops-campaign-details__drops-success';
 //const filterForDrops = '[data-a-target="form-tag-add-filter-suggested"]';
 
 function idle(ms) {
@@ -184,7 +184,7 @@ async function watchStream(browser, page) {
       
       if (!configData.onlyIdleFixed) {
         if (watch == null || watch == undefined) {
-          console.log(`[${'!'.brightYellow}] Getting a random streamer.`)
+          console.log(`[${'!'.brightYellow}] Getting a random streamer with active drops.`)
           if (dayjs(browserLastRefresh).isBefore(dayjs())) {
             var newSpawn = await cleanup(browser, page);
             browser = newSpawn.browser;
@@ -194,18 +194,22 @@ async function watchStream(browser, page) {
           }
 
           await getAllStreamer(page);
-          watch = streamers[getRandomInt(0, streamers.length - 1)];
-          streamerLastRefresh = dayjs().add(streamerListRefresh, streamerListRefreshUnit);
+          
+          if (streamers.length != 0 || streamers.length != undefined) {
+            watch = streamers[getRandomInt(0, streamers.length - 1)];
+            streamerLastRefresh = dayjs().add(streamerListRefresh, streamerListRefreshUnit);
 
-          await page.goto(baseUrl + watch, {
-            "waitUntil": "networkidle2"
-          });
+            await page.goto(baseUrl + watch, {
+              "waitUntil": "networkidle2"
+            });
+          }
+          
 
-          /*const dropsEnabled = (await query(page, dropStatus)).length || (await query(page, dropStatus2)).length;
+          const dropsEnabled = (await query(page, dropStatus)).length || (await query(page, dropStatus2)).length;
           if (!dropsEnabled) {
-            console.log(`[${'-'.red}] Streamer didnt have drops!`);
-            continue;
-          }*/
+            console.log(`[${'-'.brightred}] Streamer didnt have drops!`);
+            watch = null;
+          }
         }
       }
       var sleep = getRandomInt(minWatching, maxWatching) * 60000;
@@ -281,9 +285,9 @@ async function watchStream(browser, page) {
         await clickWhenExist(page, sidebarQuery);
 
         info = (`[${'i'.brightCyan}] Watching: ` + baseUrl + watch);
-        info = info + "\n" + `[${'i'.brightCyan}] Account status: ` + (status[0] ? status[0].children[0].data : "Unknown");
-        info = info + "\n" + (`[${'i'.brightCyan}] Time: ` + dayjs().format('HH:mm:ss'));
-        info = info + "\n" + (`[${'i'.brightCyan}] Watching stream for ` + sleep / 60000 + ' minutes => ' + dayjs().add((sleep / 60000), 'minutes').format('HH:mm:ss') + '\n');
+        //info = info + "\n" + `[${'i'.brightCyan}] Account status: ` + (status[0] ? status[0].children[0].data : "Unknown");
+        //info = info + "\n" + (`[${'i'.brightCyan}] Time: ` + dayjs().format('HH:mm:ss'));
+        //info = info + "\n" + (`[${'i'.brightCyan}] Watching stream for ` + sleep / 60000 + ' minutes => ' + dayjs().add((sleep / 60000), 'minutes').format('HH:mm:ss') + '\n');
 
         writeCurrentInfo(info);
 
@@ -291,6 +295,7 @@ async function watchStream(browser, page) {
           firstRun = false;
         }
       } else {
+        sleep = sleep * 3;
         console.log(`[${'i'.brightCyan}] Idling for ` + sleep / 60000 + ' minutes => ' + dayjs().add((sleep / 60000), 'minutes').format('HH:mm:ss') + '\n');
       }
       
@@ -322,7 +327,7 @@ async function readLoginData() {
       }
 
       if (configData.game != "" && configData.game != undefined && configData.game.length > 0) {
-        streamersUrl = (streamersUrl + configData.game.toUpperCase() + "?tl=c2542d6d-cd10-4532-919b-3d19f30a768b");
+        streamersUrl = streamersUrl + configData.game.toUpperCase();
       } else {
         let getGame = await userinput.askGameName();
         streamersUrl = getGame;
@@ -413,7 +418,7 @@ async function spawnBrowser() {
 // collect all streamers from current page
 async function getAllStreamer(page) {
   try {
-    await page.goto(streamersUrl, {
+    await page.goto(streamersUrl  + "?tl=c2542d6d-cd10-4532-919b-3d19f30a768b", {
       "waitUntil": "networkidle0"
     });
     
@@ -436,7 +441,11 @@ async function getAllStreamer(page) {
       streamers[i] = jquery[i].attribs.href.split("/")[1];
     }
 
-    console.log(`[${'+'.brightGreen}] Got streamers and filtered them!`);
+    if (streamers.length != 0) {
+      console.log(`[${'+'.brightGreen}] Got streamers and filtered them!`);
+    } else {
+      console.log(`[${'!'.brightRed}] No streamer found!`);
+    }
     return;
   } catch (e) {
     exit("get streamers/filter streamer.", e);
@@ -467,7 +476,9 @@ async function scroll(page, times) {
     try {
       await page.evaluate(async () => {
         var x = document.getElementsByClassName("scrollable-trigger__wrapper");
-        x[0].scrollIntoView();
+        if (x[0] != undefined) {
+          x[0].scrollIntoView();
+        }
       });
     } catch (e) {
       exit("emulate scroll.", e);
