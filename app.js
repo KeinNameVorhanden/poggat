@@ -171,7 +171,7 @@ async function watchStream(browser, page) {
       configData = await JSON.parse(fs.readFileSync(config, 'utf8'));
       
       let watch = null;
-      if (fixedWatch.length != 0) {
+      if (fixedWatch.length > 0) {
         for (var i = 0; i < fixedWatch.length; i++) {
           const status = await livechecker(fixedWatch[i])
           if (status.online && capitalize(status.game) == capitalize(configData.game)) {
@@ -195,7 +195,7 @@ async function watchStream(browser, page) {
 
           await getAllStreamer(page);
           
-          if (streamers.length != 0 || streamers.length != undefined) {
+          if (streamers.length > 0 || streamers.length != undefined) {
             watch = streamers[getRandomInt(0, streamers.length - 1)];
             streamerLastRefresh = dayjs().add(streamerListRefresh, streamerListRefreshUnit);
 
@@ -205,11 +205,11 @@ async function watchStream(browser, page) {
           }
           
 
-          const dropsEnabled = (await query(page, dropStatus)).length || (await query(page, dropStatus2)).length;
+          /*const dropsEnabled = (await query(page, dropStatus)).length || (await query(page, dropStatus2)).length;
           if (!dropsEnabled) {
             console.log(`[${'-'.brightred}] Streamer didnt have drops!`);
             watch = null;
-          }
+          }*/
         }
       }
       var sleep = getRandomInt(minWatching, maxWatching) * 60000;
@@ -441,8 +441,11 @@ async function getAllStreamer(page) {
       streamers[i] = jquery[i].attribs.href.split("/")[1];
     }
 
-    if (streamers.length != 0) {
+    if (streamers.length > 0) {
       console.log(`[${'+'.brightGreen}] Got streamers and filtered them!`);
+      if (streamers.length < 6) {
+        //console.log(`[${'i'.brightCyan}] `+ streamers);
+      }
     } else {
       console.log(`[${'!'.brightRed}] No streamer found!`);
     }
