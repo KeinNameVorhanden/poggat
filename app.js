@@ -43,12 +43,12 @@ if (configData != null) {
   });
 }
 
-const minWatching = configData.minWatching ? configData.minWatching : 15;
-const maxWatching = configData.maxWatching ? configData.maxWatching : 20;
-const fixedWatch = configData.watch;
-const hideBrowser = configData.hideBrowser ? configData.hideBrowser : false;
-const proxy = "";
-const proxyAuth = "";
+var minWatching = configData.minWatching ? configData.minWatching : 15;
+var maxWatching = configData.maxWatching ? configData.maxWatching : 20;
+var fixedWatch = configData.watch;
+var hideBrowser = configData.hideBrowser ? configData.hideBrowser : false;
+var proxy = "";
+var proxyAuth = "";
 
 var browserConfig = {
   headless: hideBrowser,
@@ -169,6 +169,7 @@ async function watchStream(browser, page) {
   while (run) {
     try {
       configData = await JSON.parse(fs.readFileSync(config, 'utf8'));
+      fixedWatch = configData.watch;
       
       let watch = null;
       if (fixedWatch.length > 0) {
