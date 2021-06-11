@@ -27,7 +27,7 @@ console.log(decodeURIComponent(document.cookie).match('(?<="authToken":")[a-zA-z
 - Watch fixed streamers, eg. you want to idle for a specific channel due to it having a unique drop / also checks if the game is the same as in the config
 
 ## Preview:
-<img src="https://ganja.taxi/bNNnsrkRQA.png" width=480>
+<img src="https://cloak.vision/iR2fucWsxS.png" width=480>
 
 ## Credits:
 d3v, alexsimpler
