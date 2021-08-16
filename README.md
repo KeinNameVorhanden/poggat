@@ -15,6 +15,9 @@ Go to `twitch.tv` then click on F12 and go inside the developer console (on the 
 console.log(decodeURIComponent(document.cookie).match('(?<="authToken":")[a-zA-z0-9]+')[0]);
 ```
 
+## How do I get my api client id and secret?
+Go to `dev.twitch.tv/console` register a new application and add the needed info.
+
 ## How to use?
 1. Install [Node.js](https://nodejs.org/en/download/)
 2. Install the npm packages `npm i`
