@@ -3,6 +3,6 @@ config.json.bak
 app.js.old
 index.js
 test.js
+node_modules
 *.exe
 *.log
-node_modules

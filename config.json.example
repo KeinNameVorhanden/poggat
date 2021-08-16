@@ -1,11 +1,31 @@
 {
-    "auth_token": "token",
-    "country_code": "DE",
-    "exec": "C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe",
-    "game": "Rust",
-    "minWatching":15,
-    "maxWatching":20,
-    "onlyIdleFixed": true,
-    "hideBrowser":false,
-    "watch": []
+    "browser": {
+        "exec_path": ".\\node_modules\\puppeteer-core\\.local-chromium\\win64-901912\\chrome-win\\chrome.exe",
+        "headless": true,
+        "proxy_server": "",
+        "proxy_auth": ""
+    },
+    "cookie": {
+        "auth_token": "",
+        "country_code": "DE"
+    },
+    "twitch": {
+        "game1": "Tom Clancy's Rainbow Six Siege",
+        "game2": "",
+        "game3": "",
+        "to_watch": [],
+        "streamheroes": []
+    },
+    "api": {
+        "client_id": "",
+        "client_secret": ""
+    },
+    "misc": {
+        "min_watchtime": 4,
+        "max_watchtime": 4,
+        "only_idle_fixed": false,
+        "get_random_stream": true,
+        "get_streamhero_stream": true,
+        "new_watch_method": true
+    }
 }

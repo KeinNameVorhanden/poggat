@@ -1,45 +1,40 @@
-const puppeteer = require('puppeteer');
+const streamdata = require('./streamdata');
 
-module.exports = {
-    fPCS: function (who) {
-        return fCS(who)
-    }
-};
-
-const fCS = async(User) => {
-    const browser = await puppeteer.launch({headless:true});
-    const page = await browser.newPage();
-    await page.goto('http://twitch.com/' + User, {waitUntil:"networkidle2",timeout:0});
-    const CheckUserStatus = await page.evaluate(()=>{
-        try{
-            const OfflineCheck = document.getElementsByClassName('channel-status-info channel-status-info--offline tw-border-radius-medium tw-inline-block')[0];
-            const OnlineCheck = document.getElementsByClassName('tw-strong tw-upcase tw-white-space-nowrap')[0];
-            
-            if(!OfflineCheck && !OnlineCheck){
-                return {error:"User not Found"}
-            } else if(OfflineCheck){
-                return {online:false , error:false}
-            } else if(OnlineCheck){
-                const viewers = document.querySelector("p[data-a-target='animated-channel-viewers-count']").innerText
-                const streamtime = document.getElementsByClassName('live-time')[0].innerText
-                const title = document.querySelector("h2[data-a-target]").innerText;
-                const game = document.querySelector("a[data-a-target=stream-game-link] span").innerText;
-                return {online:true, viewers, streamtime, title, game, error:false}
-            }
-        } catch(e) {
-            console.log('Error 504 Try Again');
-        }
-    })
+async function LiveChecker(who, client_id, api_auth_key) {
+    try {
+        console.log(`[${'!'.brightYellow}] Checking if ${who.brightMagenta} is online!`);
+        const api_data = await streamdata.getData(who, client_id, api_auth_key);
   
-    /*
-    if(CheckUserStatus.error){
-      console.log(" \n \n " + CheckUserStatus.error)
-    } else if(!CheckUserStatus.online && !CheckUserStatus.error) {
-      console.log(` \n \n ${User} is Offline`)
-    } else if(CheckUserStatus.online) {
-      console.log(` \n \n User: ${User} \n Game: ${CheckUserStatus.game} \n Live Stream Started At: \n ${CheckUserStatus.StreamTime} \n spectators: ${CheckUserStatus.viewers} \n Stream Title: \n """ \n ${CheckUserStatus.title} \n\n"""`, )
-    }*/
-      
-    browser.close();
-    return CheckUserStatus
-}; 
+        if (api_data.length == 0) {
+			console.log(`[${'i'.brightCyan}] ${who.brightMagenta} is ${'offline'.brightRed}!`);
+			return false
+        }
+  
+        let live = await api_data["is_live"], live_game, is_game, stream_title
+        if (live) {
+			live_game = await api_data["game_name"];
+            stream_title = await api_data[""]
+			is_game = (live_game.toUpperCase() == game1.toUpperCase() || live_game.toUpperCase() == game2.toUpperCase() || live_game.toUpperCase() == game3.toUpperCase())
+        } else {
+			console.log(`[${'i'.brightCyan}] ${who.brightMagenta} is ${'offline'.brightRed}!`);
+			return false
+        }
+  
+        if (live && is_game) {
+			console.log(`[${'i'.brightCyan}] ${who.brightMagenta} is ${'online'.brightGreen} and plays ${live_game.brightGreen}!`);
+			return true
+        } else if (live && !is_game) {
+			if (streamheroes.includes(who)) {
+				console.log(`[${'i'.brightCyan}] Stream-Hero ${who.brightMagenta} is ${'online'.brightGreen}!`);
+				return true
+			} else {
+				console.log(`[${'i'.brightCyan}] ${who.brightMagenta} is ${'online'.brightGreen} and plays ${live_game.brightYellow}!`);
+				return false
+			}
+        }
+    } catch(e) {
+        throw e;
+    }
+}
+
+exports.isLiveCheck = LiveChecker;
