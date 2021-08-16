@@ -1,6 +1,6 @@
 {
     "browser": {
-        "exec_path": ".\\node_modules\\puppeteer-core\\.local-chromium\\win64-901912\\chrome-win\\chrome.exe",
+        "exec_path": "path\\to\\chrome.exe",
         "headless": true,
         "proxy_server": "",
         "proxy_auth": ""
