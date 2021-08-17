@@ -75,7 +75,7 @@ async function UpdateConfigValues() {
 	get_random_stream = cfg.misc.get_random_stream ? cfg.misc.get_random_stream : true;
 	get_streamhero_stream = cfg.misc.get_streamhero_stream ? cfg.misc.get_streamhero_stream : false;
     new_watch_method = cfg.misc.new_watch_method ? cfg.misc.new_watch_method : true;
-    new_watch_idle = cfg.misc.new_watch_idle ? cfg.misc.new_watch_idle : true;
+    new_watch_idle = !isNaN(cfg.misc.new_watch_idle) ? cfg.misc.new_watch_idle : 5;
 
     browser_config = {
         "headless": headless,
@@ -484,7 +484,7 @@ async function WatchStream(browser, page) {
                         await page.keyboard.press('m');
                         await Idle(35);
                         await page.keyboard.press('m');
-                        await Idle((!isNaN(new_watch_idle) ? new_watch_idle : 5)*60000);
+                        await Idle(new_watch_idle*60000);
                     }
                     if (heartbeat !== null && heartbeat === false) console.log(`[${'i'.brightCyan}] Heartbeat failed`)
                 }
