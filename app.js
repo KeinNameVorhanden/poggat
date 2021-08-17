@@ -16,7 +16,8 @@ var logged_in_as = "";
 
 const config = './config.json';
 const base_url = 'https://www.twitch.tv/';
-const user_agent = 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/78.0.3904.108 Safari/537.36';
+const user_agent = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/92.0.4515.159 Safari/537.36';
+const old_user_agent = 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/78.0.3904.108 Safari/537.36';
 
 const scroll_delay = 2000;
 const scroll_times = 2;
@@ -48,8 +49,8 @@ async function UpdateConfigValues() {
 	// browser
 	exec_path = cfg.browser.exec_path ? cfg.browser.exec_path : null;
 	headless = cfg.browser.headless != null ? cfg.browser.headless : true;
-	proxy_server = cfg.browser.proxy_server ? cfg.browser.proxy_server : ""; // amsterdam.perfect-privacy.com:3128
-	proxy_auth = cfg.browser.proxy_auth ? cfg.browser.proxy_auth : ""; // username:password
+	proxy_server = cfg.browser.proxy_server ? cfg.browser.proxy_server : ""; 
+	proxy_auth = cfg.browser.proxy_auth ? cfg.browser.proxy_auth : ""; 
 
 	// cookie
 	auth_token = cfg.cookie.auth_token ? cfg.cookie.auth_token : null;
@@ -121,7 +122,8 @@ async function UpdateConfigValues() {
 }
 UpdateConfigValues();
 
-const priceUpdateQuery = 'button[aria-label="Dismiss promo message"]';
+const priceUpdateQueryEN = 'button[aria-label="Dismiss promo message"]';
+const priceUpdateQueryDE = 'button[aria-label="Aktionsnachricht ausblenden"]';
 const cookiePolicyQuery = 'button[data-a-target="consent-banner-accept"]';
 const cookiePolicyQuery2 = 'button[data-a-target="player-overlay-mature-accept"]';
 const matureContentQuery = 'button[data-a-target="player-overlay-mature-accept"]';
@@ -138,36 +140,7 @@ const dropButton = 'button[data-test-selector="DropsCampaignInProgressRewardPres
 const dropClaimed = 'p[data-test-selector="drops-message-bar-title"]';
 const chatClaim = '[data-test-selector="tw-core-button-label-text"]';
 
-/*
-Chat Claim Button
-<button class="sc-fzozJi sc-fzoLsD hcnNKD">
-    <div class="sc-fzoLag gnBowo">
-        <div data-a-target="tw-core-button-label-text" class="sc-AxiKw fRwnuZ">Claim</div>
-    </div>
-</button>
 
-Drop Claimed Popup
-<div class="sc-AxiKw brJvKU">
-    <div class="sc-AxiKw cOuXRt drops-message-bar-success-color drops-message-bar-message-size" data-test-selector="drops-message-bar-layout-container">
-        <div class="sc-AxiKw bsMHep">
-            <div class="sc-AxiKw ePtGzM">
-                <figure class="sc-AxhCb lnpmAI tw-svg"><svg type="color-fill-current" width="16px" height="16px" version="1.1" viewBox="0 0 20 20" x="0px" y="0px" class="sc-AxhUy ilKhLx"><g><path fill-rule="evenodd" d="M10 2a8 8 0 100 16 8 8 0 000-16zm3 5l1.5 1.5L9 14l-3.5-3.5L7 9l2 2 4-4z" clip-rule="evenodd"></path></g></svg></figure>
-            </div>
-            <div class="sc-AxiKw cHWMbL">
-                <p data-test-selector="drops-message-bar-title" class="sc-AxgMl bjavNZ">Drop Claimed</p>
-            </div>
-            <p data-test-selector="drops-message-bar-msg" class="sc-AxgMl fFPQpl"></p>
-        </div>
-    </div>
-    <div class="sc-AxiKw PaYzV drops-message-bar-success-color drops-message-bar-action-button">
-        <div class="sc-AxiKw iPCIPe">
-            <button>
-                <figure class="sc-AxhCb lnpmAI tw-svg"><svg type="color-fill-current" width="16px" height="16px" version="1.1" viewBox="0 0 20 20" x="0px" y="0px" class="sc-AxhUy ilKhLx"><g><path d="M8.5 10L4 5.5 5.5 4 10 8.5 14.5 4 16 5.5 11.5 10l4.5 4.5-1.5 1.5-4.5-4.5L5.5 16 4 14.5 8.5 10z"></path></g></svg></figure>
-            </button>
-        </div>
-    </div>
-</div>
-*/
 
 // spawn browser with predefined configuration
 async function SpawnBrowser() {
@@ -176,10 +149,6 @@ async function SpawnBrowser() {
     await UpdateConfigValues();
   
 	try {
-        /*if (proxy_server != "") {
-            browser_config.args.push(`--proxy-server=` + proxy_server);
-        }*/
-        
 		var browser = await puppeteer.launch(browser_config);
 		var page = await browser.newPage();
   
@@ -315,9 +284,6 @@ async function GetAllStreamer(page) {
             }
             if (streamers.length > 0) {
                 console.log(`[${'+'.brightGreen}] Got streamers for ${game1.brightCyan} and filtered them!`);
-                /*if (streamers.length < 6) {
-                    console.log(`[${'i'.brightCyan}] `+ streamers);
-                }*/
             } else {
                 console.log(`[${'!'.brightRed}] No streamer found for ${game1.brightCyan}!`);
                 await Idle(250);
@@ -340,9 +306,6 @@ async function GetAllStreamer(page) {
                     }
                     if (streamers.length > 0) {
                         console.log(`[${'+'.brightGreen}] Got streamers for ${game2.brightCyan} and filtered them!`);
-                        /*if (streamers.length < 6) {
-                            console.log(`[${'i'.brightCyan}] `+ streamers);
-                        }*/
                     } else {
                         console.log(`[${'!'.brightRed}] No streamer found for ${game2.brightCyan}!`);
                         await Idle(250);
@@ -365,9 +328,6 @@ async function GetAllStreamer(page) {
                             }
                             if (streamers.length > 0) {
                                 console.log(`[${'+'.brightGreen}] Got streamers for ${game3.brightCyan} and filtered them!`);
-                                /*if (streamers.length < 6) {
-                                    console.log(`[${'i'.brightCyan}] `+ streamers);
-                                }*/
                             } else {
                                 console.log(`[${'!'.brightRed}] No streamer found for ${game3.brightCyan}!`);
                             }
@@ -447,6 +407,9 @@ async function WatchStream(browser, page) {
             }
 
             let sleep = GetRandomInt(min_watchtime, max_watchtime) * 60000;
+		    
+            await Idle(300);
+            await ClaimDrops(page);
     
             if (!first_run) {
                 await CheckLogin(page);
@@ -454,15 +417,15 @@ async function WatchStream(browser, page) {
             } else {
                 ConsoleTitle("NodeJS @ IdleTwitch v" + appversion + " | Drops collected: " + collected_drops + " | Last Drop: " + last_drop);
             }
-		    
-            await Idle(1500);
-            await ClaimDrops(page);
+
+            await Idle(300);
   
             if (watch != null) {
                 await page.goto(base_url + watch, { "waitUntil": "networkidle2" });
     
                 await Idle(1000);
-                await ClickWhenExist(page, priceUpdateQuery);
+                await ClickWhenExist(page, priceUpdateQueryEN);
+                await ClickWhenExist(page, priceUpdateQueryDE);
                 await ClickWhenExist(page, cookiePolicyQuery);
                 await ClickWhenExist(page, cookiePolicyQuery2);
                 await ClickWhenExist(page, matureContentQuery);
@@ -498,9 +461,8 @@ async function WatchStream(browser, page) {
                 await ClickWhenExist(page, sidebarQuery);
         
                 info = (`[${'i'.brightCyan}] Watching: ` + base_url + watch);
-                //info = info + "\n" + `[${'i'.brightCyan}] Account status: ` + (status[0] ? status[0].children[0].data : "Unknown");
-                info = info + "\n" + (`[${'i'.brightCyan}] Time: ` + DayJS().format('HH:mm:ss'));
-                //info = info + "\n" + (`[${'i'.brightCyan}] Watching stream for ` + sleep / 60000 + ' minutes => ' + DayJS().add((sleep / 60000), 'minutes').format('HH:mm:ss'));
+                //info = info + "\n" + `[${'i'.brightCyan}] Status: ` + (status[0] ? status[0].children[0].data : "Unknown");
+                info = info + "\n" + (`[${'i'.brightCyan}] Time: ` + DayJS().format('HH:mm:ss') + ' => ' + DayJS().add((20), 'minutes').format('HH:mm:ss'));
         
                 console.log(info);
 
@@ -508,18 +470,14 @@ async function WatchStream(browser, page) {
                     let heartbeat, timestamp = DayJS()
                     while (watch) {
                         heartbeat = await LiveChecker(watch, true);
-                        //console.log(`${('hearbeat is ' + heartbeat).gray}`);
                         if (!heartbeat) {break}
                         if (DayJS().isAfter(timestamp.add(20, 'minute'))) {
-                            //let cfg = await cfg.twitch.to_watch.filter(function(e) { return e !== watch})
-                            //console.log(`[${'i'.brightCyan}] Idled for 4 hours. Removing Entry from Array`);
-                            //fs.writeFile(config, JSON.stringify(cfg, null, "\t"), function (err) {if (err) console.log(err)});
                             console.log(`[${'i'.brightCyan}] Idled for 20 minutes.`);
-                            break
+                            break;
                         }
                         dropclaimed = await ClickWhenExist(page, chatClaim);
                         if (dropclaimed) {
-                            await page.screenshot({path: 'screenshots/' + DayJS().format('YYYYMMDD-HHmmss') + '.png'});
+                            console.log(`[${'i'.brightCyan}] Claimed a drop.`);
                             collected_drops++;
                         }
                         await page.goto(base_url + watch, { "waitUntil": "networkidle2" });
@@ -527,7 +485,6 @@ async function WatchStream(browser, page) {
                         await page.keyboard.press('m');
                         await Idle(100);
                         await page.keyboard.press('m');
-                        //console.log(`${('Now idling 5 minutes.').gray}`)
                         await Idle(5*60000)
                     }
                     if (heartbeat !== null && heartbeat === false) console.log(`[${'i'.brightCyan}] Heartbeat failed`)
@@ -573,7 +530,7 @@ function GetRandomInt(min, max) {
     return Math.floor(Math.random() * (max - min + 1)) + min;
 }
   
-  // check if element exists and click on it if it does
+// check if element exists and click on it if it does
 async function ClickWhenExist(page, selector) {
     let result = await GetQuery(page, selector);
     
@@ -592,27 +549,17 @@ async function ClaimDrops(page) {
     await page.goto(base_url + `drops/inventory/`, { "waitUntil": "networkidle2" });
     let drops = await GetQuery(page, dropButton);
     if (drops.length == 1) {
-        //drop_start:
         for (var i = 0; i < drops.length; i++) {
             await ClickWhenExist(page, dropButton);
             last_drop = DayJS().format('DD. MMM HH:mm:ss');
-            /*let WasClaimed = await GetQuery(page, dropClaimed);
-            if (!WasClaimed.includes("Claimed")) {
-                break drop_start
-            }*/
         }
-        console.log(`[${'i'.brightCyan}] ${'Claimed 1 drop item.'.brightCyan}`);
+        console.log(`[${'i'.brightCyan}] ${'Claimed 1 drop.'.brightCyan}`);
     } else if (drops.length >= 2) {
-        //drops_start:
         for (var i = 0; i < drops.length; i++) {
             await ClickWhenExist(page, dropButton);
-            /*let WasClaimed = await GetQuery(page, dropClaimed);
-            if (!WasClaimed.includes("Claimed")) {
-                break drop_start
-            }*/
             await Idle(2000);
         }
-        console.log(`[${'i'.brightCyan}] ${'Claimed ' + drops.length + ' drop items.'.brightCyan}`);
+        console.log(`[${'i'.brightCyan}] ${'Claimed ' + drops.length + ' drops.'.brightCyan}`);
         last_drop = DayJS().format('DD. MMM HH:mm:ss');
     } else {
         await Idle(1000);
