@@ -11,7 +11,7 @@ const colors = require('colors');
 const streamdata = require('./helper/streamdata');
 
 // current version
-const appversion = "0.3.4.2";
+const appversion = "0.3.4.3";
 var logged_in_as = "";
 
 const config = './config.json';
@@ -350,7 +350,9 @@ async function WatchStream(browser, page) {
 	await CheckLogin(page);
 	while (run) {
 		try {
-            UpdateConfigValues()
+            await UpdateConfigValues();
+            await Idle(300);
+            await ClaimDrops(page);
 
             if (api_auth_key == null) {
                 api_auth_key = await streamdata.getKey(client_id, client_secret);
@@ -407,9 +409,6 @@ async function WatchStream(browser, page) {
             }
 
             let sleep = GetRandomInt(min_watchtime, max_watchtime) * 60000;
-		    
-            await Idle(300);
-            await ClaimDrops(page);
     
             if (!first_run) {
                 await CheckLogin(page);
