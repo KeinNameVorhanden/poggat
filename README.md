@@ -22,8 +22,10 @@ Go to `dev.twitch.tv/console` register a new application and add the needed info
 1. Install [Node.js](https://nodejs.org/en/download/)
 2. Install the npm packages `npm i`
 3. Rename `config.json.example` to `config.json`
-4. Edit `config.json`
+4. Edit `config.json` 
 5. Double click on `start.bat`
+
+Important: Always use chrome, not chromium
 
 ## Features:
 - Login via `authToken` given within cookies of twitch
