@@ -11,7 +11,7 @@ const colors = require('colors');
 const streamdata = require('./helper/streamdata');
 
 // current version
-const appversion = "0.3.4.3";
+const appversion = "0.3.4.4";
 var logged_in_as = "";
 
 const config = './config.json';
@@ -42,7 +42,7 @@ if (cfg) {
 
 // config values
 let browser_config, loc_cookie, auth_cookie
-let exec_path, headless, proxy_server, proxy_auth, auth_token, country_code, game1, game2, game3, to_watch, streamheroes, client_id, client_secret, min_watchtime, max_watchtime, only_idle_fixed, get_random_stream, get_streamhero_stream, new_watch_method
+let exec_path, headless, proxy_server, proxy_auth, auth_token, country_code, game1, game2, game3, to_watch, streamheroes, client_id, client_secret, inactivity_sleep, min_watchtime, max_watchtime, only_idle_fixed, get_random_stream, get_streamhero_stream, new_watch_method, new_watch_idle
 async function UpdateConfigValues() {
 	let cfg = fs.existsSync(config) ? await JSON.parse(fs.readFileSync(config, 'utf8')) : null;
 	if (!cfg) return
@@ -68,12 +68,14 @@ async function UpdateConfigValues() {
 	client_secret = cfg.api.client_secret ? cfg.api.client_secret : null;
 
 	// misc
-	min_watchtime = cfg.misc.min_watchtime ? cfg.misc.min_watchtime : 15;
-	max_watchtime = cfg.misc.max_watchtime ? cfg.misc.max_watchtime : 20;
+    inactivity_sleep = !isNaN(cfg.misc.inactivity_sleep) ? cfg.misc.inactivity_sleep : 20;
+	min_watchtime = !isNaN(cfg.misc.min_watchtime) ? cfg.misc.min_watchtime : 15;
+	max_watchtime = !isNaN(cfg.misc.max_watchtime) ? cfg.misc.max_watchtime : 20;
 	only_idle_fixed = cfg.misc.only_idle_fixed ? cfg.misc.only_idle_fixed : false;
 	get_random_stream = cfg.misc.get_random_stream ? cfg.misc.get_random_stream : true;
 	get_streamhero_stream = cfg.misc.get_streamhero_stream ? cfg.misc.get_streamhero_stream : false;
     new_watch_method = cfg.misc.new_watch_method ? cfg.misc.new_watch_method : true;
+    new_watch_idle = cfg.misc.new_watch_idle ? cfg.misc.new_watch_idle : true;
 
     browser_config = {
         "headless": headless,
@@ -286,7 +288,7 @@ async function GetAllStreamer(page) {
                 console.log(`[${'+'.brightGreen}] Got streamers for ${game1.brightCyan} and filtered them!`);
             } else {
                 console.log(`[${'!'.brightRed}] No streamer found for ${game1.brightCyan}!`);
-                await Idle(250);
+                await Idle(50);
                 if (game2 != "") {
                     await page.goto(`https://www.twitch.tv/directory/game/` + game2.toUpperCase() + "?tl=c2542d6d-cd10-4532-919b-3d19f30a768b", {
                     "waitUntil": "networkidle0"
@@ -308,7 +310,7 @@ async function GetAllStreamer(page) {
                         console.log(`[${'+'.brightGreen}] Got streamers for ${game2.brightCyan} and filtered them!`);
                     } else {
                         console.log(`[${'!'.brightRed}] No streamer found for ${game2.brightCyan}!`);
-                        await Idle(250);
+                        await Idle(50);
                         if (game3 != "") {
                             await page.goto(`https://www.twitch.tv/directory/game/` + game3.toUpperCase() + "?tl=c2542d6d-cd10-4532-919b-3d19f30a768b", {
                             "waitUntil": "networkidle0"
@@ -351,7 +353,7 @@ async function WatchStream(browser, page) {
 	while (run) {
 		try {
             await UpdateConfigValues();
-            await Idle(300);
+            await Idle(75);
             await ClaimDrops(page);
 
             if (api_auth_key == null) {
@@ -407,8 +409,6 @@ async function WatchStream(browser, page) {
                     await page.goto(base_url + watch, { "waitUntil": "networkidle2" });
                 }
             }
-
-            let sleep = GetRandomInt(min_watchtime, max_watchtime) * 60000;
     
             if (!first_run) {
                 await CheckLogin(page);
@@ -417,12 +417,12 @@ async function WatchStream(browser, page) {
                 ConsoleTitle("NodeJS @ IdleTwitch v" + appversion + " | Drops collected: " + collected_drops + " | Last Drop: " + last_drop);
             }
 
-            await Idle(300);
+            await Idle(50);
   
             if (watch != null) {
                 await page.goto(base_url + watch, { "waitUntil": "networkidle2" });
     
-                await Idle(1000);
+                await Idle(125);
                 await ClickWhenExist(page, priceUpdateQueryEN);
                 await ClickWhenExist(page, priceUpdateQueryDE);
                 await ClickWhenExist(page, cookiePolicyQuery);
@@ -449,9 +449,9 @@ async function WatchStream(browser, page) {
                     await page.keyboard.press('m');
                 }
     
-                await Idle(100);
+                await Idle(35);
                 await page.keyboard.press('m');
-                await Idle(100);
+                await Idle(35);
                 await page.keyboard.press('m');
         
                 await ClickWhenExist(page, sidebarQuery);
@@ -480,11 +480,11 @@ async function WatchStream(browser, page) {
                             collected_drops++;
                         }
                         await page.goto(base_url + watch, { "waitUntil": "networkidle2" });
-                        await Idle(100);
+                        await Idle(35);
                         await page.keyboard.press('m');
-                        await Idle(100);
+                        await Idle(35);
                         await page.keyboard.press('m');
-                        await Idle(5*60000)
+                        await Idle((!isNaN(new_watch_idle) ? new_watch_idle : 5)*60000);
                     }
                     if (heartbeat !== null && heartbeat === false) console.log(`[${'i'.brightCyan}] Heartbeat failed`)
                 }
@@ -493,12 +493,11 @@ async function WatchStream(browser, page) {
                     first_run = false;
                 }
             } else {
-                let sleep = 20*60000;
-                console.log(`[${'i'.brightCyan}] Idling for ` + sleep / 60000 + ' minutes => ' + DayJS().add((sleep / 60000), 'minutes').format('HH:mm:ss') + '\n');
-                await page.waitForTimeout(sleep);
+                console.log(`[${'i'.brightCyan}] Idling for ` + inactivity_sleep / 60000 + ' minutes => ' + DayJS().add((inactivity_sleep / 60000), 'minutes').format('HH:mm:ss') + '\n');
+                await page.waitForTimeout(inactivity_sleep);
             }
 		
-            if (!new_watch_method) await page.waitForTimeout(sleep);
+            if (!new_watch_method) await page.waitForTimeout(inactivity_sleep);
         } catch (e) {
             Exit("trying to watch a stream.", e);
         }
@@ -607,7 +606,7 @@ async function main() {
             browser,
             page
         } = await SpawnBrowser();
-        await Idle(666);
+        await Idle(420);
         await WatchStream(browser, page);  
     } catch (e) {
         Exit("initialize main.", e);

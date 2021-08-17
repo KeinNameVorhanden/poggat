@@ -21,11 +21,13 @@
         "client_secret": ""
     },
     "misc": {
+        "inactivity_sleep": 20,
         "min_watchtime": 4,
         "max_watchtime": 4,
         "only_idle_fixed": false,
         "get_random_stream": true,
         "get_streamhero_stream": true,
-        "new_watch_method": true
+        "new_watch_method": true,
+        "new_watch_idle": 2.5
     }
 }
