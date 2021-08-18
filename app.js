@@ -1,30 +1,30 @@
 // imports
 require('dotenv').config();
-const fs = require('fs');
-const readline = require('readline');
-const treekill = require('tree-kill');
-const DayJS = require('DayJS');
-const puppeteer = require('puppeteer-core');
-const cheerio = require('cheerio');
-const ConsoleTitle = require('console-title');
-const colors = require('colors');
-const streamdata = require('./helper/streamdata');
+let fs = require('fs');
+let readline = require('readline');
+let treekill = require('tree-kill');
+let DayJS = require('DayJS');
+let puppeteer = require('puppeteer-core');
+let cheerio = require('cheerio');
+let ConsoleTitle = require('console-title');
+let colors = require('colors');
+let streamdata = require('./helper/streamdata');
 
 // current version
-const appversion = "0.3.4.4";
+let appversion = "0.3.4.5";
 var logged_in_as = "";
 
-const config = './config.json';
-const base_url = 'https://www.twitch.tv/';
-const user_agent = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/92.0.4515.159 Safari/537.36';
-const old_user_agent = 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/78.0.3904.108 Safari/537.36';
+let config = './config.json';
+let base_url = 'https://www.twitch.tv/';
+let user_agent = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/92.0.4515.159 Safari/537.36';
+let old_user_agent = 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/78.0.3904.108 Safari/537.36';
 
-const scroll_delay = 2000;
-const scroll_times = 2;
-const streamer_list_refresh = 1;
-const streamer_list_refresh_unit = 'hour';
-const browser_clean = 1;
-const browser_clean_unit = 'hour';
+let scroll_delay = 2000;
+let scroll_times = 2;
+let streamer_list_refresh = 1;
+let streamer_list_refresh_unit = 'hour';
+let browser_clean = 1;
+let browser_clean_unit = 'hour';
 
 var run = true;
 var first_run = true;
@@ -124,23 +124,23 @@ async function UpdateConfigValues() {
 }
 UpdateConfigValues();
 
-const priceUpdateQueryEN = 'button[aria-label="Dismiss promo message"]';
-const priceUpdateQueryDE = 'button[aria-label="Aktionsnachricht ausblenden"]';
-const cookiePolicyQuery = 'button[data-a-target="consent-banner-accept"]';
-const cookiePolicyQuery2 = 'button[data-a-target="player-overlay-mature-accept"]';
-const matureContentQuery = 'button[data-a-target="player-overlay-mature-accept"]';
-const sidebarQuery = '*[data-test-selector="user-menu__toggle"]';
-const userStatusQuery = 'span[data-a-target="presence-text"]';
-const channelsQuery = 'a[data-test-selector*="ChannelLink"]';
-const streamPauseQuery = 'button[data-a-target="player-play-pause-button"]';
-const closeNotification = 'button[aria-label="Close"]';
-const streamSettingsQuery = '[data-a-target="player-settings-button"]';
-const streamQualitySettingQuery = '[data-a-target="player-settings-menu-item-quality"]';
-const streamQualityQuery = 'input[data-a-target="tw-radio"]';
-const categoryNotFound = '[data-a-target="core-error-message"]';
-const dropButton = 'button[data-test-selector="DropsCampaignInProgressRewardPresentation-claim-button"]';
-const dropClaimed = 'p[data-test-selector="drops-message-bar-title"]';
-const chatClaim = '[data-test-selector="tw-core-button-label-text"]';
+let priceUpdateQueryEN = 'button[aria-label="Dismiss promo message"]';
+let priceUpdateQueryDE = 'button[aria-label="Aktionsnachricht ausblenden"]';
+let cookiePolicyQuery = 'button[data-a-target="consent-banner-accept"]';
+let cookiePolicyQuery2 = 'button[data-a-target="player-overlay-mature-accept"]';
+let matureContentQuery = 'button[data-a-target="player-overlay-mature-accept"]';
+let sidebarQuery = '*[data-test-selector="user-menu__toggle"]';
+let userStatusQuery = 'span[data-a-target="presence-text"]';
+let channelsQuery = 'a[data-test-selector*="ChannelLink"]';
+let streamPauseQuery = 'button[data-a-target="player-play-pause-button"]';
+let closeNotificationQuery = 'button[aria-label="Close"]';
+let streamSettingsQuery = '[data-a-target="player-settings-button"]';
+let streamQualitySettingQuery = '[data-a-target="player-settings-menu-item-quality"]';
+let streamQualityQuery = 'input[data-a-target="tw-radio"]';
+let categoryNotFoundQuery = '[data-a-target="core-error-message"]';
+let dropButtonQuery = 'button[data-test-selector="DropsCampaignInProgressRewardPresentation-claim-button"]';
+let dropClaimedQuery = 'p[data-test-selector="drops-message-bar-title"]';
+let chatClaimQuery = '[data-test-selector="tw-core-button-label-text"]';
 
 
 
@@ -185,7 +185,7 @@ function Idle(ms) {
 async function GetQuery(page, GetQuery) {
 	let bodyHTML = await page.evaluate(() => document.body.innerHTML);
 	let $ = cheerio.load(bodyHTML);
-	const jquery = $(GetQuery);
+	let jquery = $(GetQuery);
 	
 	return jquery;
 }
@@ -193,7 +193,7 @@ async function GetQuery(page, GetQuery) {
 async function GetUserProperty(page, name) {
 	if (!name || !(/^[A-Za-z1-9]+$/.test(name))) throw new Error("Invalid cookie name: ", name);
   
-	const data = await page.cookies();
+	let data = await page.cookies();
 	let cookieValue = undefined;
   
 	for (let i = 0; i < data.length; i++) {
@@ -227,7 +227,7 @@ async function CheckLogin(page) {
 async function LiveChecker(who, silent) {
     try {
         if (!silent) console.log(`[${'!'.brightYellow}] Checking if ${who.brightMagenta} is online!`);
-        const api_data = await streamdata.getData(who, client_id, api_auth_key);
+        let api_data = await streamdata.getData(who, client_id, api_auth_key);
   
         if (api_data.length == 0) {
 			if (!silent) console.log(`[${'i'.brightCyan}] ${who.brightMagenta} is ${'offline'.brightRed}!`);
@@ -272,14 +272,14 @@ async function GetAllStreamer(page) {
                 "waitUntil": "networkidle0"
             });
         
-            const notFound = await GetQuery(page, categoryNotFound);
+            let notFound = await GetQuery(page, categoryNotFoundQuery);
             if (notFound.length || notFound.text() == "Category does not exist") {
                 console.log(`[${'-'.brightRed}] Game category not found, did you enter the game as displayed on twitch?`);
                 Exit();
             }
         
             await Scroll(page, scroll_times);
-            const jquery = await GetQuery(page, channelsQuery);
+            let jquery = await GetQuery(page, channelsQuery);
     
             for (var i = 0; i < jquery.length; i++) {
                 streamers[i] = jquery[i].attribs.href.split("/")[1];
@@ -294,14 +294,14 @@ async function GetAllStreamer(page) {
                     "waitUntil": "networkidle0"
                     });
             
-                    const notFound = await GetQuery(page, categoryNotFound);
+                    let notFound = await GetQuery(page, categoryNotFoundQuery);
                     if (notFound.length || notFound.text() == "Category does not exist") {
                         console.log(`[${'-'.brightRed}] Game category not found, did you enter the game as displayed on twitch?`);
                         Exit();
                     }
                 
                     await Scroll(page, scroll_times);
-                    const jquery = await GetQuery(page, channelsQuery);
+                    let jquery = await GetQuery(page, channelsQuery);
             
                     for (var i = 0; i < jquery.length; i++) {
                         streamers[i] = jquery[i].attribs.href.split("/")[1];
@@ -316,14 +316,14 @@ async function GetAllStreamer(page) {
                             "waitUntil": "networkidle0"
                             });
                                 
-                            const notFound = await GetQuery(page, categoryNotFound);
+                            let notFound = await GetQuery(page, categoryNotFoundQuery);
                             if (notFound.length || notFound.text() == "Category does not exist") {
                                 console.log(`[${'-'.brightRed}] Game category not found, did you enter the game as displayed on twitch?`);
                                 Exit();
                             }
                                 
                             await Scroll(page, scroll_times);
-                            const jquery = await GetQuery(page, channelsQuery);
+                            let jquery = await GetQuery(page, channelsQuery);
                             
                             for (var i = 0; i < jquery.length; i++) {
                                 streamers[i] = jquery[i].attribs.href.split("/")[1];
@@ -431,20 +431,20 @@ async function WatchStream(browser, page) {
     
                 if (first_run) {
                     await ClickWhenExist(page, streamPauseQuery);
-                    await ClickWhenExist(page, closeNotification);
+                    await ClickWhenExist(page, closeNotificationQuery);
                     await page.waitForSelector(streamSettingsQuery);
                     await ClickWhenExist(page, streamSettingsQuery);
                     await page.waitForSelector(streamQualitySettingQuery);
                     await ClickWhenExist(page, streamQualitySettingQuery);
                     await page.waitForSelector(streamQualityQuery);
-                    await ClickWhenExist(page, closeNotification);
+                    await ClickWhenExist(page, closeNotificationQuery);
         
                     var resolution = await GetQuery(page, streamQualityQuery);
                     resolution = resolution[resolution.length - 1].attribs.id;
                     await page.evaluate((resolution) => { document.getElementById(resolution).click(); }, resolution);
                     console.log(`[${'!'.brightYellow}] Lowest resolution set!`);
         
-                    await ClickWhenExist(page, closeNotification);
+                    await ClickWhenExist(page, closeNotificationQuery);
                     await ClickWhenExist(page, streamPauseQuery);
                     await page.keyboard.press('m');
                 }
@@ -459,6 +459,7 @@ async function WatchStream(browser, page) {
                 let status = await GetQuery(page, userStatusQuery);
                 await ClickWhenExist(page, sidebarQuery);
         
+                let info;
                 info = (`[${'i'.brightCyan}] Watching: ` + base_url + watch);
                 //info = info + "\n" + `[${'i'.brightCyan}] Status: ` + (status[0] ? status[0].children[0].data : "Unknown");
                 info = info + "\n" + (`[${'i'.brightCyan}] Time: ` + DayJS().format('HH:mm:ss') + ' => ' + DayJS().add((20), 'minutes').format('HH:mm:ss'));
@@ -474,8 +475,8 @@ async function WatchStream(browser, page) {
                             console.log(`[${'i'.brightCyan}] Idled for 20 minutes.`);
                             break;
                         }
-                        dropclaimed = await ClickWhenExist(page, chatClaim);
-                        if (dropclaimed) {
+                        dropClaimedQuery = await ClickWhenExist(page, chatClaimQuery);
+                        if (dropClaimedQuery) {
                             console.log(`[${'i'.brightCyan}] Claimed a drop.`);
                             collected_drops++;
                         }
@@ -493,11 +494,11 @@ async function WatchStream(browser, page) {
                     first_run = false;
                 }
             } else {
-                console.log(`[${'i'.brightCyan}] Idling for ` + inactivity_sleep / 60000 + ' minutes => ' + DayJS().add((inactivity_sleep / 60000), 'minutes').format('HH:mm:ss') + '\n');
-                await page.waitForTimeout(inactivity_sleep);
+                console.log(`[${'i'.brightCyan}] Idling for ` + inactivity_sleep + ' minutes => ' + DayJS().add((inactivity_sleep), 'minutes').format('HH:mm:ss') + '\n');
+                await page.waitForTimeout(inactivity_sleep*60000);
             }
 		
-            if (!new_watch_method) await page.waitForTimeout(inactivity_sleep);
+            if (!new_watch_method) await page.waitForTimeout(inactivity_sleep*60000);
         } catch (e) {
             Exit("trying to watch a stream.", e);
         }
@@ -545,16 +546,16 @@ async function ClickWhenExist(page, selector) {
 
 async function ClaimDrops(page) {
     await page.goto(base_url + `drops/inventory/`, { "waitUntil": "networkidle2" });
-    let drops = await GetQuery(page, dropButton);
+    let drops = await GetQuery(page, dropButtonQuery);
     if (drops.length == 1) {
         for (var i = 0; i < drops.length; i++) {
-            await ClickWhenExist(page, dropButton);
+            await ClickWhenExist(page, dropButtonQuery);
             last_drop = DayJS().format('DD. MMM HH:mm:ss');
         }
         console.log(`[${'i'.brightCyan}] ${'Claimed 1 drop.'.brightCyan}`);
     } else if (drops.length >= 2) {
         for (var i = 0; i < drops.length; i++) {
-            await ClickWhenExist(page, dropButton);
+            await ClickWhenExist(page, dropButtonQuery);
             await Idle(2000);
         }
         console.log(`[${'i'.brightCyan}] ${'Claimed ' + drops.length + ' drops.'.brightCyan}`);
@@ -568,7 +569,7 @@ async function ClaimDrops(page) {
 
 //  
 async function Cleanup(browser, page) {
-    const pages = await browser.pages();
+    let pages = await browser.pages();
     await pages.map((page) => page.close());
     treekill(browser.process().pid, 'SIGKILL');
     console.log(`${'Respawning Browser'.gray}`);
