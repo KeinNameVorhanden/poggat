@@ -11,7 +11,7 @@ let colors = require('colors');
 let streamdata = require('./helper/streamdata');
 
 // current version
-let appversion = "0.3.4.5";
+let appversion = "0.3.4.6";
 var logged_in_as = "";
 
 let config = './config.json';
@@ -124,8 +124,22 @@ async function UpdateConfigValues() {
 }
 UpdateConfigValues();
 
-let priceUpdateQueryEN = 'button[aria-label="Dismiss promo message"]';
-let priceUpdateQueryDE = 'button[aria-label="Aktionsnachricht ausblenden"]';
+let PriceUpdateQueries = [
+    priceUpdateQueryEN = 'button[aria-label="Dismiss promo message"]',
+    priceUpdateQueryDE = 'button[aria-label="Aktionsnachricht ausblenden"]',
+    priceUpdateQueryES = 'button[aria-label="Descartar mensaje promocional"]',
+    priceUpdateQueryES2 = 'button[aria-label="Descartar mensaje de promoción"]',
+    priceUpdateQueryFR = 'button[aria-label="Faire disparaître le message promotionnel"]',
+    priceUpdateQueryIT = 'button[aria-label="Chiudi messaggio promozionale"]',
+    priceUpdateQueryPT = 'button[aria-label="Ignorar mensagem da promoção"]',
+    priceUpdateQueryPT2 = 'button[aria-label="Descartar mensagem promocional"]',
+    priceUpdateQueryTR = 'button[aria-label="Promosyon mesajı kapat"]',
+    priceUpdateQueryDK = 'button[aria-label="Afvis kampagnemeddelelse"]',
+    priceUpdateQueryHU = 'button[aria-label="Promóciós üzenet bezárása"]',
+    priceUpdateQueryNL = 'button[aria-label="Promotiebericht sluiten"]',
+    priceUpdateQueryPL = 'button[aria-label="Odrzuć komunikat promocyjny"]'
+];
+
 let cookiePolicyQuery = 'button[data-a-target="consent-banner-accept"]';
 let cookiePolicyQuery2 = 'button[data-a-target="player-overlay-mature-accept"]';
 let matureContentQuery = 'button[data-a-target="player-overlay-mature-accept"]';
@@ -423,8 +437,10 @@ async function WatchStream(browser, page) {
                 await page.goto(base_url + watch, { "waitUntil": "networkidle2" });
     
                 await Idle(125);
-                await ClickWhenExist(page, priceUpdateQueryEN);
-                await ClickWhenExist(page, priceUpdateQueryDE);
+                for (let element of PriceUpdateQueries){
+                    let accepted = await ClickWhenExist(page, element);
+                    if (accepted) {break;}
+                };
                 await ClickWhenExist(page, cookiePolicyQuery);
                 await ClickWhenExist(page, cookiePolicyQuery2);
                 await ClickWhenExist(page, matureContentQuery);
@@ -536,11 +552,12 @@ async function ClickWhenExist(page, selector) {
     try {
         if (result[0].type == 'tag' && result[0].name == 'button') {
             await page.click(selector);
-            await page.waitForTimeout(500);
+            await page.waitForTimeout(250);
             return true;
         }
     } catch (e) {
-        await Idle(100);
+        await Idle(10);
+        return false;
     }
 }
 
