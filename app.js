@@ -140,9 +140,11 @@ let PriceUpdateQueries = [
     priceUpdateQueryPL = 'button[aria-label="Odrzuć komunikat promocyjny"]'
 ];
 
+let subtemberQuery = 'button[aria-label="Close"]';
+
 let cookiePolicyQuery = 'button[data-a-target="consent-banner-accept"]';
-let cookiePolicyQuery2 = 'button[data-a-target="player-overlay-mature-accept"]';
 let matureContentQuery = 'button[data-a-target="player-overlay-mature-accept"]';
+let matureContentQuery2 = '*[data-a-target="player-overlay-mature-accept"]';
 let sidebarQuery = '*[data-test-selector="user-menu__toggle"]';
 let userStatusQuery = 'span[data-a-target="presence-text"]';
 let channelsQuery = 'a[data-test-selector*="ChannelLink"]';
@@ -441,9 +443,13 @@ async function WatchStream(browser, page) {
                     let accepted = await ClickWhenExist(page, element);
                     if (accepted) {break;}
                 };
+
+                await ClickWhenExist(page, subtemberQuery);
+
                 await ClickWhenExist(page, cookiePolicyQuery);
-                await ClickWhenExist(page, cookiePolicyQuery2);
                 await ClickWhenExist(page, matureContentQuery);
+                await Idle(25);
+                await ClickWhenExist(page, matureContentQuery2);
     
                 if (first_run) {
                     await ClickWhenExist(page, streamPauseQuery);
@@ -503,7 +509,7 @@ async function WatchStream(browser, page) {
                         await page.keyboard.press('m');
                         await Idle(new_watch_idle*60000);
                     }
-                    if (heartbeat !== null && heartbeat === false) console.log(`[${'i'.brightCyan}] Heartbeat failed`)
+                    if (heartbeat !== null && heartbeat === false) {console.log(`[${'i'.brightCyan}] Heartbeat failed`);}
                 }
 
                 if (first_run) {
