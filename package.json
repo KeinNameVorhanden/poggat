@@ -1,6 +1,6 @@
 {
   "name": "poggat",
-  "version": "0.3.3",
+  "version": "0.3.4",
   "description": "A twitch drop idler, with auto drop claiming.",
   "main": "app.js",
   "author": "KeinNameVorhanden",
