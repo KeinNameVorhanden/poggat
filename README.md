@@ -38,6 +38,3 @@ Important: Always use chrome, not chromium
 
 ## Credits:
 d3v, alexsimpler
-
-## Donations
-<a href="https://www.buymeacoffee.com/trlx" target="_blank"><img src="https://trlx.xyz/buymeacoffee_small.png"></a>
