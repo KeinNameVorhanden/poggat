@@ -36,7 +36,7 @@ var api_auth_key = null;
 let cfg = fs.existsSync(config) ? JSON.parse(fs.readFileSync(config, 'utf8')) : null;
 if (cfg) {
 	fs.writeFile(config + '.bak', JSON.stringify(cfg, null, "\t"), function (err) {
-		if (err) console.log(err)
+		if (err) LogToConsole(err)
 	});
 }
 
@@ -162,7 +162,7 @@ let chatClaimQuery = '[data-test-selector="tw-core-button-label-text"]';
 
 // spawn browser with predefined configuration
 async function SpawnBrowser() {
-    if (first_run) {console.log(`\n[${'●'.brightRed}] ${'BROWSER'.brightRed}`)}
+    if (first_run) {LogToConsole(`[${'●'.brightRed}] ${'BROWSER'.brightRed}`)}
 
     await UpdateConfigValues();
   
@@ -182,7 +182,7 @@ async function SpawnBrowser() {
 				'Proxy-Authorization': 'Basic ' + Buffer.from(proxy_auth).toString('base64')
 			})
 		}
-		console.log(`[${'+'.brightGreen}] Successfully set up the browser.`);
+		LogToConsole(`[${'+'.brightGreen}] Successfully set up the browser.`);
 	} catch (e) {
 		Exit("set up the browser", e);
 	}
@@ -228,7 +228,7 @@ async function CheckLogin(page) {
         if (cookieSetByServer[i].name == 'twilight-user') {
             let name = await GetUserProperty(page, 'displayName');
             if (first_run) {
-            console.log(`[${'+'.brightGreen}] Successfully logged in as ${name.bold.green}!`);
+            LogToConsole(`[${'+'.brightGreen}] Successfully logged in as ${name.bold.green}!`);
             logged_in_as = name;
         }
         return true;
@@ -242,11 +242,11 @@ async function CheckLogin(page) {
 
 async function LiveChecker(who, silent) {
     try {
-        if (!silent) console.log(`[${'!'.brightYellow}] Checking if ${who.brightMagenta} is online!`);
+        if (!silent) LogToConsole(`[${'!'.brightYellow}] Checking if ${who.brightMagenta} is online!`);
         let api_data = await streamdata.getData(who, client_id, api_auth_key);
   
         if (api_data.length == 0) {
-			if (!silent) console.log(`[${'i'.brightCyan}] ${who.brightMagenta} is ${'offline'.brightRed}!`);
+			if (!silent) LogToConsole(`[${'i'.brightCyan}] ${who.brightMagenta} is ${'offline'.brightRed}!`);
 			return false
         }
   
@@ -257,19 +257,19 @@ async function LiveChecker(who, silent) {
             is_rerun = await (stream_title.includes("rerun") || stream_title.includes("re-run") || stream_title.includes("restream") || stream_title.includes("re-stream"));
 			is_game = (live_game.toUpperCase() == game1.toUpperCase() || live_game.toUpperCase() == game2.toUpperCase() || live_game.toUpperCase() == game3.toUpperCase())
         } else {
-			if (!silent) console.log(`[${'i'.brightCyan}] ${who.brightMagenta} is ${'offline'.brightRed}!`);
+			if (!silent) LogToConsole(`[${'i'.brightCyan}] ${who.brightMagenta} is ${'offline'.brightRed}!`);
 			return false
         }
   
         if (live && is_game && !is_rerun) {
-			if (!silent) console.log(`[${'i'.brightCyan}] ${who.brightMagenta} is ${'online'.brightGreen} and plays ${live_game.brightGreen}!`);
+			if (!silent) LogToConsole(`[${'i'.brightCyan}] ${who.brightMagenta} is ${'online'.brightGreen} and plays ${live_game.brightGreen}!`);
 			return true
         } else if (live && !is_game && !is_rerun) {
 			if (streamheroes.includes(who)) {
-				if (!silent) console.log(`[${'i'.brightCyan}] Stream-Hero ${who.brightMagenta} is ${'online'.brightGreen}!`);
+				if (!silent) LogToConsole(`[${'i'.brightCyan}] Stream-Hero ${who.brightMagenta} is ${'online'.brightGreen}!`);
 				return true
 			} else {
-				if (!silent) console.log(`[${'i'.brightCyan}] ${who.brightMagenta} is ${'online'.brightGreen} and plays ${live_game.brightYellow}!`);
+				if (!silent) LogToConsole(`[${'i'.brightCyan}] ${who.brightMagenta} is ${'online'.brightGreen} and plays ${live_game.brightYellow}!`);
 				return false
 			}
         }
@@ -290,7 +290,7 @@ async function GetAllStreamer(page) {
         
             let notFound = await GetQuery(page, categoryNotFoundQuery);
             if (notFound.length || notFound.text() == "Category does not exist") {
-                console.log(`[${'-'.brightRed}] Game category not found, did you enter the game as displayed on twitch?`);
+                LogToConsole(`[${'-'.brightRed}] Game category not found, did you enter the game as displayed on twitch?`);
                 Exit();
             }
         
@@ -301,9 +301,9 @@ async function GetAllStreamer(page) {
                 streamers[i] = jquery[i].attribs.href.split("/")[1];
             }
             if (streamers.length > 0) {
-                console.log(`[${'+'.brightGreen}] Got streamers for ${game1.brightCyan} and filtered them!`);
+                LogToConsole(`[${'+'.brightGreen}] Got streamers for ${game1.brightCyan} and filtered them!`);
             } else {
-                console.log(`[${'!'.brightRed}] No streamer found for ${game1.brightCyan}!`);
+                LogToConsole(`[${'!'.brightRed}] No streamer found for ${game1.brightCyan}!`);
                 await Idle(50);
                 if (game2 != "") {
                     await page.goto(`https://www.twitch.tv/directory/game/` + game2.toUpperCase() + "?tl=c2542d6d-cd10-4532-919b-3d19f30a768b", {
@@ -312,7 +312,7 @@ async function GetAllStreamer(page) {
             
                     let notFound = await GetQuery(page, categoryNotFoundQuery);
                     if (notFound.length || notFound.text() == "Category does not exist") {
-                        console.log(`[${'-'.brightRed}] Game category not found, did you enter the game as displayed on twitch?`);
+                        LogToConsole(`[${'-'.brightRed}] Game category not found, did you enter the game as displayed on twitch?`);
                         Exit();
                     }
                 
@@ -323,9 +323,9 @@ async function GetAllStreamer(page) {
                         streamers[i] = jquery[i].attribs.href.split("/")[1];
                     }
                     if (streamers.length > 0) {
-                        console.log(`[${'+'.brightGreen}] Got streamers for ${game2.brightCyan} and filtered them!`);
+                        LogToConsole(`[${'+'.brightGreen}] Got streamers for ${game2.brightCyan} and filtered them!`);
                     } else {
-                        console.log(`[${'!'.brightRed}] No streamer found for ${game2.brightCyan}!`);
+                        LogToConsole(`[${'!'.brightRed}] No streamer found for ${game2.brightCyan}!`);
                         await Idle(50);
                         if (game3 != "") {
                             await page.goto(`https://www.twitch.tv/directory/game/` + game3.toUpperCase() + "?tl=c2542d6d-cd10-4532-919b-3d19f30a768b", {
@@ -334,7 +334,7 @@ async function GetAllStreamer(page) {
                                 
                             let notFound = await GetQuery(page, categoryNotFoundQuery);
                             if (notFound.length || notFound.text() == "Category does not exist") {
-                                console.log(`[${'-'.brightRed}] Game category not found, did you enter the game as displayed on twitch?`);
+                                LogToConsole(`[${'-'.brightRed}] Game category not found, did you enter the game as displayed on twitch?`);
                                 Exit();
                             }
                                 
@@ -345,9 +345,9 @@ async function GetAllStreamer(page) {
                                 streamers[i] = jquery[i].attribs.href.split("/")[1];
                             }
                             if (streamers.length > 0) {
-                                console.log(`[${'+'.brightGreen}] Got streamers for ${game3.brightCyan} and filtered them!`);
+                                LogToConsole(`[${'+'.brightGreen}] Got streamers for ${game3.brightCyan} and filtered them!`);
                             } else {
-                                console.log(`[${'!'.brightRed}] No streamer found for ${game3.brightCyan}!`);
+                                LogToConsole(`[${'!'.brightRed}] No streamer found for ${game3.brightCyan}!`);
                             }
                         }
                     }
@@ -361,7 +361,7 @@ async function GetAllStreamer(page) {
 }
 
 async function WatchStream(browser, page) {
-	console.log(`\n[${'●'.brightRed}] ${'MAIN'.brightRed}`);
+	LogToConsole(`[${'●'.brightRed}] ${'MAIN'.brightRed}`);
 	var streamerLastRefresh = DayJS().add(streamer_list_refresh, streamer_list_refresh_unit);
 	var browserLastRefresh = DayJS().add(browser_clean, browser_clean_unit);
   
@@ -390,19 +390,19 @@ async function WatchStream(browser, page) {
 		
             if (!only_idle_fixed) {
                 if (watch == null || watch == undefined) {
-                    /*if (DayJS(browserLastRefresh).isBefore(DayJS())) {
+                    if (DayJS(browserLastRefresh).isBefore(DayJS())) {
                         var newSpawn = await Cleanup(browser, page);
                         browser = newSpawn.browser;
                         page = newSpawn.page;
                         first_run = true;
                         browserLastRefresh = DayJS().add(browser_clean, browser_clean_unit);
-                    }*/
+                    }
         
                     if (get_random_stream) {
                         await GetAllStreamer(page);
                     
                         if (streamers.length > 0 && streamers.length != undefined) {
-                            console.log(`[${'!'.brightYellow}] Getting random Streamer.`);
+                            LogToConsole(`[${'!'.brightYellow}] Getting random Streamer.`);
                             watch = streamers[GetRandomInt(0, streamers.length - 1)];
                             streamerLastRefresh = DayJS().add(streamer_list_refresh, streamer_list_refresh_unit);
                         }
@@ -410,7 +410,7 @@ async function WatchStream(browser, page) {
         
                     if (get_streamhero_stream) {
                         if (watch == undefined && streamheroes.length > 0) {
-                            console.log(`[${'!'.brightYellow}] Getting Stream Heroes Streamer.`);
+                            LogToConsole(`[${'!'.brightYellow}] Getting Stream Heroes Streamer.`);
                             for (var i = 0; i < streamheroes.length; i++) {
                                 let isLive = await LiveChecker(streamheroes[i], false);
                                 if (isLive) {
@@ -421,8 +421,9 @@ async function WatchStream(browser, page) {
                             }
                         }
                     }
-                    console.log(`${('Switching to ' + watch).gray}`)
-                    await page.goto(base_url + watch, { "waitUntil": "networkidle2" });
+                    LogToConsole(`${('[#] Switching to ' + watch).gray}`)
+                    page.goto(base_url + watch, { "waitUntil": "networkidle2",  "timeout": 30000});
+                    await Idle(1500);
                 }
             }
     
@@ -464,7 +465,7 @@ async function WatchStream(browser, page) {
                     var resolution = await GetQuery(page, streamQualityQuery);
                     resolution = resolution[resolution.length - 1].attribs.id;
                     await page.evaluate((resolution) => { document.getElementById(resolution).click(); }, resolution);
-                    console.log(`[${'!'.brightYellow}] Lowest resolution set!`);
+                    LogToConsole(`[${'!'.brightYellow}] Lowest resolution set!`);
         
                     await ClickWhenExist(page, closeNotificationQuery);
                     await ClickWhenExist(page, streamPauseQuery);
@@ -480,13 +481,9 @@ async function WatchStream(browser, page) {
                 await page.waitForSelector(userStatusQuery);
                 let status = await GetQuery(page, userStatusQuery);
                 await ClickWhenExist(page, sidebarQuery);
-        
-                let info;
-                info = (`[${'i'.brightCyan}] Watching: ` + base_url + watch);
-                //info = info + "\n" + `[${'i'.brightCyan}] Status: ` + (status[0] ? status[0].children[0].data : "Unknown");
-                info = info + "\n" + (`[${'i'.brightCyan}] Time: ` + DayJS().format('HH:mm:ss') + ' => ' + DayJS().add((20), 'minutes').format('HH:mm:ss'));
-        
-                console.log(info);
+                
+                LogToConsole(`[${'i'.brightCyan}] Watching: ` + base_url + watch);
+                LogToConsole(`[${'i'.brightCyan}] Time: ` + DayJS().format('HH:mm:ss') + ' => ' + DayJS().add((20), 'minutes').format('HH:mm:ss'));
 
                 if (new_watch_method) {
                     let heartbeat, timestamp = DayJS()
@@ -494,12 +491,12 @@ async function WatchStream(browser, page) {
                         heartbeat = await LiveChecker(watch, true);
                         if (!heartbeat) {break}
                         if (DayJS().isAfter(timestamp.add(20, 'minute'))) {
-                            console.log(`[${'i'.brightCyan}] Idled for 20 minutes.`);
+                            LogToConsole(`[${'i'.brightCyan}] Idled for 20 minutes.`);
                             break;
                         }
                         dropClaimedQuery = await ClickWhenExist(page, chatClaimQuery);
                         if (dropClaimedQuery) {
-                            console.log(`[${'i'.brightCyan}] Claimed a drop.`);
+                            LogToConsole(`[${'i'.brightCyan}] Claimed a drop.`);
                             collected_drops++;
                         }
                         await page.goto(base_url + watch, { "waitUntil": "networkidle2" });
@@ -509,14 +506,14 @@ async function WatchStream(browser, page) {
                         await page.keyboard.press('m');
                         await Idle(new_watch_idle*60000);
                     }
-                    if (heartbeat !== null && heartbeat === false) {console.log(`[${'i'.brightCyan}] Heartbeat failed`);}
+                    if (heartbeat !== null && heartbeat === false) {LogToConsole(`[${'i'.brightCyan}] Heartbeat failed`);}
                 }
 
                 if (first_run) {
                     first_run = false;
                 }
             } else {
-                console.log(`[${'i'.brightCyan}] Idling for ` + inactivity_sleep + ' minutes => ' + DayJS().add((inactivity_sleep), 'minutes').format('HH:mm:ss') + '\n');
+                LogToConsole(`[${'i'.brightCyan}] Idling for ` + inactivity_sleep + ' minutes => ' + DayJS().add((inactivity_sleep), 'minutes').format('HH:mm:ss') + '\n');
                 await page.waitForTimeout(inactivity_sleep*60000);
             }
 		
@@ -575,13 +572,13 @@ async function ClaimDrops(page) {
             await ClickWhenExist(page, dropButtonQuery);
             last_drop = DayJS().format('DD. MMM HH:mm:ss');
         }
-        console.log(`[${'i'.brightCyan}] ${'Claimed 1 drop.'.brightCyan}`);
+        LogToConsole(`[${'i'.brightCyan}] ${'Claimed 1 drop.'.brightCyan}`);
     } else if (drops.length >= 2) {
         for (var i = 0; i < drops.length; i++) {
             await ClickWhenExist(page, dropButtonQuery);
             await Idle(2000);
         }
-        console.log(`[${'i'.brightCyan}] ${'Claimed ' + drops.length + ' drops.'.brightCyan}`);
+        LogToConsole(`[${'i'.brightCyan}] ${'Claimed ' + drops.length + ' drops.'.brightCyan}`);
         last_drop = DayJS().format('DD. MMM HH:mm:ss');
     } else {
         await Idle(1000);
@@ -595,7 +592,7 @@ async function Cleanup(browser, page) {
     let pages = await browser.pages();
     await pages.map((page) => page.close());
     treekill(browser.process().pid, 'SIGKILL');
-    console.log(`${'Respawning Browser'.gray}`);
+    LogToConsole(`${'Respawning Browser'.gray}`);
     process.removeAllListeners("exit");
     process.removeAllListeners("SIGHUP");
     process.removeAllListeners("SIGINT");
@@ -609,19 +606,25 @@ async function Cleanup(browser, page) {
 async function Exit(msg = "", e = null) {
     run = false;
     if (e && msg.length > 0) {
-      console.log(`[${'-'.brightRed}] An error occured while trying to ${msg}(${e.name}: ${e.message.brightRed})`);
+      LogToConsole(`[${'-'.brightRed}] An error occured while trying to ${msg}(${e.name}: ${e.message.brightRed})`);
     } else {
-      console.log(`[${'-'.brightRed}] ERROR!`);
+      LogToConsole(`[${'-'.brightRed}] ERROR!`);
     }
     await Idle(5000);
     run = true;
     //main();
 }
 
+function LogToConsole(msg) {
+    let now = DayJS().format("HH:mm:ss");
+    console.log("[" + now + "] " + msg);
+    return
+}
+
 // initialize main
 async function main() {
     console.clear();
-    console.log("IdleTwitch v" + appversion.italic.brightGreen);
+    LogToConsole("IdleTwitch v" + appversion.italic.brightGreen);
     ConsoleTitle("NodeJS @ IdleTwitch v" + appversion);
   
     try {
@@ -630,8 +633,16 @@ async function main() {
             browser,
             page
         } = await SpawnBrowser();
+        /*page.on('requestfailed', request => {
+            if (request.failure() && request.failure().errorText == "net::ERR_ABORTED" || request.failure().errorText == "net::ERR_FAILED") return
+            LogToConsole(`${('[e] url: ' + request.url() + ', error: ' + request.failure().errorText + ', method: ' + request.method()).red}`)
+        });
+        // Catch console log errors
+        page.on("pageerror", err => {
+            LogToConsole(`${('[e] page error:' + err.toString()).red}`);
+        });*/
         await Idle(420);
-        await WatchStream(browser, page);  
+        await WatchStream(browser, page);
     } catch (e) {
         Exit("initialize main.", e);
     }
@@ -641,7 +652,7 @@ main()
 
 // shutdown function
 async function shutdown() {
-    console.log("Exiting...");
+    LogToConsole("Exiting...");
     run = false;
     process.Exit();
 }
