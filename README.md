@@ -7,7 +7,6 @@
 - [Features](#Features)
 - [Preview](#Preview)
 - [Credits](#Credits)
-- [Donations](#Donations)
 
 ## How do I get my auth token?
 Go to `twitch.tv` then click on F12 and go inside the developer console (on the upper tabs) and paste this inside and press enter:
