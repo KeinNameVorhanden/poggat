@@ -1,22 +1,19 @@
 {
   "name": "poggat",
-  "version": "0.3.4",
+  "version": "0.3.5",
   "description": "A twitch drop idler, with auto drop claiming.",
   "main": "app.js",
   "author": "KeinNameVorhanden",
   "dependencies": {
-    "cheerio": "^1.0.0-rc.10",
+    "cheerio": "^1.0.0-rc.11",
     "colors": "^1.4.0",
     "console-title": "^1.1.0",
-    "dayjs": "^1.10.7",
-    "dotenv": "^10.0.0",
-    "inquirer": "^8.2.0",
-    "puppeteer-core": "10.4.0",
+    "dayjs": "^1.11.2",
+    "dotenv": "^16.0.1",
+    "inquirer": "^8.2.4",
+    "puppeteer-core": "^13.7.0",
     "request": "^2.88.2",
     "tree-kill": "^1.2.2"
-  },
-  "devDependencies": {
-    "nexe": "^4.0.0-beta.19"
   },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
